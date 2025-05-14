@@ -1,0 +1,7 @@
+<resources>
+    <string name="app_name">QR MealTrack</string>
+
+    <string name="home">Home</string>
+    <string name="scan">Scan</string>
+    <string name="profile">Profile</string>
+</resources>
