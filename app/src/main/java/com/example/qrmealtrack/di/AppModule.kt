@@ -10,6 +10,7 @@ import com.example.qrmealtrack.domain.repository.ReceiptRepository
 import com.example.qrmealtrack.domain.repository.WebPageRepository
 import com.example.qrmealtrack.domain.usecase.FetchWebPageInfoUseCase
 import com.example.qrmealtrack.domain.usecase.GetAllReceiptsUseCase
+import com.example.qrmealtrack.domain.usecase.GetReceiptsGroupedByDayUseCase
 import com.example.qrmealtrack.domain.usecase.SaveParsedReceiptUseCase
 import dagger.Module
 import dagger.Provides
@@ -63,4 +64,11 @@ object AppModule {
         return SaveParsedReceiptUseCase(repository)
     }
 
+    @Provides
+    @Singleton
+    fun provideGetReceiptsGroupedByDayUseCase(
+        repository: ReceiptRepository
+    ): GetReceiptsGroupedByDayUseCase {
+        return GetReceiptsGroupedByDayUseCase(repository)
+    }
 }

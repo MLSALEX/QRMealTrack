@@ -32,7 +32,7 @@ fun MainScreen(
     ) { padding ->
         Box(modifier = Modifier.padding(padding)) {
             when (state.currentTab) {
-                BottomTab.HOME -> HomeScreen(receipts)
+                BottomTab.HOME -> HomeScreen()
                 BottomTab.SCAN -> ScanScreen(
                     navController = navController,
                     onScanned = {
