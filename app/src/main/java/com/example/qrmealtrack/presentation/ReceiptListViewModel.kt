@@ -1,10 +1,12 @@
 package com.example.qrmealtrack.presentation
 
+import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.qrmealtrack.data.local.ReceiptEntity
 import com.example.qrmealtrack.domain.repository.ReceiptRepository
 import com.example.qrmealtrack.domain.usecase.FetchWebPageInfoUseCase
+import com.example.qrmealtrack.domain.usecase.GetReceiptsGroupedByDayUseCase
 import com.example.qrmealtrack.domain.usecase.SaveParsedReceiptUseCase
 import com.example.qrmealtrack.presentation.utils.ParsedReceipt
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -12,6 +14,7 @@ import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import javax.inject.Inject
@@ -20,7 +23,8 @@ import javax.inject.Inject
 class ReceiptListViewModel @Inject constructor(
     private val repository: ReceiptRepository,
     private val fetchWebPageInfoUseCase: FetchWebPageInfoUseCase,
-    private val saveParsedReceiptUseCase: SaveParsedReceiptUseCase
+    private val saveParsedReceiptUseCase: SaveParsedReceiptUseCase,
+    private val getReceiptsGroupedByDayUseCase: GetReceiptsGroupedByDayUseCase
 ) :
     ViewModel() {
     private val _state = MutableStateFlow(ReceiptUiState())
@@ -42,11 +46,21 @@ class ReceiptListViewModel @Inject constructor(
 
     init {
         viewModelScope.launch {
-            repository.getAllReceipts().collect { receipts ->
+            combine(
+                repository.getAllReceipts(),
+                getReceiptsGroupedByDayUseCase()
+            ) { rawReceipts, grouped ->
+                Log.d("💡VM", "Всего записей в базе: ${rawReceipts.size}, групп: ${grouped.size}")
+                grouped.forEach { (date, list) ->
+                    Log.d("📅", "$date -> ${list.size} чеков")
+                }
+                Triple(rawReceipts, grouped, calculateStats(rawReceipts))
+            }.collect { (rawReceipts, grouped, stats) ->
                 _state.update {
                     it.copy(
-                        receipts = receipts,
-                        statistics = calculateStats(receipts)
+                        receipts = rawReceipts,
+                        receiptsByDay = grouped,
+                        statistics = stats
                     )
                 }
             }
