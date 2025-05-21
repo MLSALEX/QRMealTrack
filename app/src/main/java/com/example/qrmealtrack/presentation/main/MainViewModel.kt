@@ -4,7 +4,6 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.qrmealtrack.domain.model.Receipt
 import com.example.qrmealtrack.domain.usecase.GetAllReceiptsUseCase
-import com.example.qrmealtrack.presentation.navigation.BottomTab
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -21,7 +20,6 @@ class MainViewModel @Inject constructor(
     val uiState: StateFlow<MainUiState> = _uiState.asStateFlow()
 
     private val _receipts = MutableStateFlow<List<Receipt>>(emptyList())
-    val receipts: StateFlow<List<Receipt>> = _receipts.asStateFlow()
 
     init {
         viewModelScope.launch {
@@ -31,15 +29,13 @@ class MainViewModel @Inject constructor(
         }
     }
 
-    fun onEvent(event: MainUiEvent) {
-        when (event) {
-            is MainUiEvent.TabSelected -> {
-                _uiState.update { it.copy(currentTab = event.tab) }
-            }
-        }
+
+    fun onTabSelected(tab: BottomTab) {
+        _uiState.update { it.copy(currentTab = tab) }
     }
 
+
     fun goToProfileAfterScan() {
-        _uiState.update { it.copy(currentTab = BottomTab.PROFILE) }
+        _uiState.update { it.copy(currentTab = BottomTab.STATS) }
     }
 }

@@ -4,6 +4,7 @@ import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.qrmealtrack.data.local.ReceiptEntity
+import com.example.qrmealtrack.domain.model.Receipt
 import com.example.qrmealtrack.domain.repository.ReceiptRepository
 import com.example.qrmealtrack.domain.usecase.FetchWebPageInfoUseCase
 import com.example.qrmealtrack.domain.usecase.GetReceiptsGroupedByDayUseCase
@@ -46,29 +47,26 @@ class ReceiptListViewModel @Inject constructor(
 
     init {
         viewModelScope.launch {
-            combine(
-                repository.getAllReceipts(),
-                getReceiptsGroupedByDayUseCase()
-            ) { rawReceipts, grouped ->
-                Log.d("💡VM", "Всего записей в базе: ${rawReceipts.size}, групп: ${grouped.size}")
-                grouped.forEach { (date, list) ->
-                    Log.d("📅", "$date -> ${list.size} чеков")
+            getReceiptsGroupedByDayUseCase().collect { result ->
+                Log.d("💡VM", "Всего групп: ${result.receiptsByDay.size}")
+                result.receiptsByDay.forEach { (date, list) ->
+                    Log.d("📅", "$date → ${list.size} чеков")
                 }
-                Triple(rawReceipts, grouped, calculateStats(rawReceipts))
-            }.collect { (rawReceipts, grouped, stats) ->
+
                 _state.update {
                     it.copy(
-                        receipts = rawReceipts,
-                        receiptsByDay = grouped,
-                        statistics = stats
+                        receiptsByDay = result.receiptsByDay,
+                        totalsByDay = result.totalsByDay,
+                        // если хочешь посчитать stats:
+                        statistics = calculateStats(result.receiptsByDay.values.flatten())
                     )
                 }
             }
         }
     }
 
-    private fun calculateStats(receipts: List<ReceiptEntity>): Statistics {
-        val prices = receipts.map { it.price }
+    private fun calculateStats(receipts: List<Receipt>): Statistics {
+        val prices = receipts.map { it.total }
         val minPrice = prices.minOrNull() ?: 0.0
         val maxPrice = prices.maxOrNull() ?: 0.0
         val avgPrice = prices.average()

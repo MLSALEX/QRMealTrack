@@ -18,8 +18,6 @@ import java.net.URLDecoder
 sealed class Screen(val route: String) {
     data object Permission : Screen("permission")
     data object Main : Screen("main")
-//    data object Scanner : Screen("scanner")
-//    data object Statistics : Screen("statistics")
 }
 
 @Composable
@@ -28,12 +26,12 @@ fun NavGraph(navController: NavHostController) {
         composable("permission") {
             PermissionScreen(
                 permission = android.Manifest.permission.CAMERA,
-                onPermissionGranted = { navController.navigate("main") },
+                onPermissionGranted = {  navController.navigate(Screen.Main.route) },
                 onPermissionDenied = { /* Показать диалог / навигация на error экран */ }
             )
         }
-        composable("main") {
-            MainScreen(navController = navController)
+        composable(Screen.Main.route) {
+            MainScreen(parentNavController = navController)
         }
 
         composable(
@@ -53,11 +51,5 @@ fun NavGraph(navController: NavHostController) {
                 }
             )
         }
-//        composable(Screen.Scanner.route) {
-//            ScanScreen { navController.navigate(Screen.Statistics.route) }
-//        }
-//        composable(Screen.Statistics.route) {
-//            StatisticsScreen()
-//        }
     }
 }

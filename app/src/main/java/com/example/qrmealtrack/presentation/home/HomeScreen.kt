@@ -1,6 +1,5 @@
 package com.example.qrmealtrack.presentation.home
 
-import android.text.format.DateUtils.isToday
 import android.util.Log
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -13,7 +12,6 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.Divider
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -25,10 +23,8 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
-import com.example.qrmealtrack.R
 import com.example.qrmealtrack.domain.model.Receipt
 import com.example.qrmealtrack.presentation.ReceiptListViewModel
-import com.example.qrmealtrack.presentation.components.TopBar
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
@@ -55,9 +51,13 @@ fun HomeScreen(viewModel: ReceiptListViewModel = hiltViewModel()) {
         verticalArrangement = Arrangement.spacedBy(12.dp)
     ) {
         receiptsByDay.forEach { (day, receipts) ->
+            val totalForDay = receipts.sumOf { it.total }
             item {
                 Text(
-                    text = if (isToday(day)) "Сегодня" else day,
+                    text = buildString {
+                        append(if (isToday(day)) "Сегодня" else day)
+                        append(" — total: %.2f MDL".format(totalForDay))
+                    },
                     style = MaterialTheme.typography.titleLarge,
                     modifier = Modifier.padding(bottom = 4.dp)
                 )
