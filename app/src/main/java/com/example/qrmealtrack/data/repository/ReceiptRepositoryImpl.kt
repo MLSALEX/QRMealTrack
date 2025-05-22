@@ -1,5 +1,6 @@
 package com.example.qrmealtrack.data.repository
 
+import android.util.Log
 import com.example.qrmealtrack.data.local.ReceiptDao
 import com.example.qrmealtrack.data.local.ReceiptEntity
 import com.example.qrmealtrack.domain.repository.ReceiptRepository
@@ -11,6 +12,7 @@ class ReceiptRepositoryImpl(
     override fun getAllReceipts(): Flow<List<ReceiptEntity>> = dao.getAllReceipts()
 
     override suspend fun insertReceipt(receipt: ReceiptEntity): Long {
+        Log.d("🧾SAVE", "Сохраняем: ${receipt.itemName} | Вес: ${receipt.weight} г | Цена: ${receipt.price}")
         return dao.insertReceipt(receipt)
     }
 

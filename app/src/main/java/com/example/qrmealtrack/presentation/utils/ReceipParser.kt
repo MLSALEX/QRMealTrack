@@ -57,6 +57,8 @@ fun parseTextToReceipts(text: String): ParsedReceipt? {
                 val unitPrice = inlineMatch.groupValues[3].replace(",", ".").toDoubleOrNull() ?: 0.0
                 val price = next.replace(Regex("[^0-9.,]"), "").replace(",", ".").toDoubleOrNull() ?: 0.0
 
+                Log.d("🍽️PARSE", "Блюдо: $itemName | Вес: $weight г | Цена: $price")
+
                 receipts.add(
                     ReceiptEntity(
                         fiscalCode = fiscalCode,
