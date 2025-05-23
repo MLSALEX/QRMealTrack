@@ -30,25 +30,32 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.width
 import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.style.TextOverflow
 import com.example.qrmealtrack.R
+import com.example.qrmealtrack.domain.model.PriceChangeItem
+import androidx.compose.material.icons.filled.ArrowUpward
+import androidx.compose.material.icons.filled.ArrowDownward
 
 
 @Composable
 fun StatsScreen(viewModel: StatsViewModel = hiltViewModel()) {
-    val selectedFilter by viewModel.selectedFilter.collectAsState()
-    val state by viewModel.statsState.collectAsState()
+    val state by viewModel.uiState.collectAsState()
 
     Column(modifier = Modifier.fillMaxSize()) {
-        TimeFilterRow(selected = selectedFilter, onSelect = viewModel::onFilterSelected)
+        TimeFilterRow(selected = state.selectedFilter, onSelect = viewModel::onFilterSelected)
 
         StatsGrid(
-            weight = "${state.totalWeight.format(3)} kg",
-            cost = "MDL ${state.totalCost.format(2)}",
-            topDish = state.topDish ?: "–",
-            topDishCost = "MDL${state.topDishCost.format(2)}",
-            priceChanges = state.priceChanges
+            weight = "${state.summary.totalWeight.format(3)} kg",
+            cost = "MDL ${state.summary.totalCost.format(2)}",
+            topDish = state.summary.topDish ?: "–",
+            topDishCost = "MDL${state.summary.topDishCost.format(2)}",
+            priceChanges = state.summary.priceChanges,
+            priceUpCount = state.summary.priceUpCount,
+            priceDownCount = state.summary.priceDownCount,
+            priceDynamics = state.priceDynamics
         )
     }
 }
@@ -115,12 +122,15 @@ fun StatsGrid(
     cost: String,
     topDish: String,
     topDishCost: String,
-    priceChanges: Int
+    priceChanges: Int,
+    priceUpCount: Int,
+    priceDownCount: Int,
+    priceDynamics: List<PriceChangeItem>
 ) {
     val weightIcon = painterResource(id = R.drawable.kitchen_scale)
     val costIcon = painterResource(id = R.drawable.money_bag)
     val dishIcon = painterResource(id = R.drawable.plate)
-//    val chartIcon = painterResource(id = R.drawable.ic_chart)
+    val chartIcon = painterResource(id = R.drawable.chart)
     Column(Modifier.padding(16.dp)) {
         Row(
             Modifier.fillMaxWidth(),
@@ -134,8 +144,77 @@ fun StatsGrid(
             Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.spacedBy(12.dp)
         ) {
-            StatCard(title = "Top Dish", value = topDish, subtitle = topDishCost, icon = dishIcon)
-            StatCard(title = "Price Changes", value = priceChanges.toString())
+            StatCard(title = "Top Dish", value = topDish, subtitle = topDishCost, icon = dishIcon,modifier = Modifier.weight(1f))
+            StatCard(title = "Price Changes",
+                value = "$priceChanges\n↑ $priceUpCount ↓ $priceDownCount",
+                icon = chartIcon,
+                modifier = Modifier.weight(1f))
+        }
+        Spacer(Modifier.height(12.dp))
+        PriceDynamicsCard(items = priceDynamics)
+    }
+}
+
+@Composable
+fun PriceDynamicsCard(
+    items: List<PriceChangeItem>,
+    modifier: Modifier = Modifier
+) {
+    Card(
+        modifier = modifier.fillMaxWidth(),
+        shape = MaterialTheme.shapes.medium,
+        colors = CardDefaults.cardColors(containerColor = Color.White),
+        elevation = CardDefaults.cardElevation(4.dp)
+    ) {
+        Column(modifier = Modifier.padding(12.dp)) {
+            Text(
+                text = "Price Dynamics",
+                style = MaterialTheme.typography.labelMedium,
+                color = Color.Gray
+            )
+
+            Spacer(modifier = Modifier.height(8.dp))
+
+            if (items.isEmpty()) {
+                Text("No recent changes", style = MaterialTheme.typography.bodySmall)
+            } else {
+                items.forEach { item ->
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(vertical = 4.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.SpaceBetween
+                    ) {
+                        Text(
+                            item.dishName,
+                            style = MaterialTheme.typography.bodyMedium,
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis
+                        )
+
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            val icon = if (item.isIncreased) Icons.Default.ArrowUpward else Icons.Default.ArrowDownward
+                            val color = if (item.isIncreased) Color.Red else Color(0xFF2E7D32)
+
+                            Icon(
+                                imageVector = icon,
+                                contentDescription = null,
+                                tint = color,
+                                modifier = Modifier.size(16.dp)
+                            )
+
+                            Spacer(modifier = Modifier.width(4.dp))
+
+                            Text(
+                                text = "${item.difference.format(2)} MDL",
+                                style = MaterialTheme.typography.bodySmall,
+                                color = color
+                            )
+                        }
+                    }
+                }
+            }
         }
     }
 }

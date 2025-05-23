@@ -11,7 +11,9 @@ data class StatsSummary(
     val totalCost: Double,
     val topDish: String?,
     val topDishCost: Double,
-    val priceChanges: Int
+    val priceChanges: Int,
+    val priceUpCount: Int = 0,
+    val priceDownCount: Int = 0
 )
 
 class GetFilteredStatsUseCase @Inject constructor(
@@ -40,12 +42,31 @@ class GetFilteredStatsUseCase @Inject constructor(
                 .map { it.price }
                 .average()
                 .takeIf { !it.isNaN() } ?: 0.0
+            val grouped = filtered.groupBy { it.itemName }
 
-            val priceChanges = filtered
-                .groupBy { it.itemName }
-                .count { group -> group.value.map { it.price }.distinct().size > 1 }
+            val priceChanges = grouped.count { group ->
+                group.value.map { it.price }.distinct().size > 1
+            }
 
-            StatsSummary(totalWeight, totalCost, topDish, topDishCost, priceChanges)
+            val priceUpCount = grouped.count { (_, items) ->
+                val sorted = items.sortedBy { it.dateTime }
+                sorted.size >= 2 && sorted.first().price < sorted.last().price
+            }
+
+            val priceDownCount = grouped.count { (_, items) ->
+                val sorted = items.sortedBy { it.dateTime }
+                sorted.size >= 2 && sorted.first().price > sorted.last().price
+            }
+
+            StatsSummary(
+                totalWeight = totalWeight,
+                totalCost = totalCost,
+                topDish = topDish,
+                topDishCost = topDishCost,
+                priceChanges = priceChanges,
+                priceUpCount = priceUpCount,
+                priceDownCount = priceDownCount
+            )
         }
     }
 }

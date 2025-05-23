@@ -83,4 +83,6 @@ dependencies {
 
     implementation(libs.jsoup)
     implementation(libs.okhttp)
+
+    implementation(libs.material.icons.extended)
 }

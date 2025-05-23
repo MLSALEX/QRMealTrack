@@ -23,4 +23,8 @@ class ReceiptRepositoryImpl(
     override suspend fun getReceiptsByFiscalCodeAndDate(fiscalCode: String, dateTime: Long): List<ReceiptEntity> {
         return dao.getReceiptsByFiscalCodeAndDate(fiscalCode, dateTime)
     }
+
+    override suspend fun deleteReceiptGroup(fiscalCode: String, dateTime: Long) {
+        dao.deleteReceiptGroup(fiscalCode, dateTime)
+    }
 }

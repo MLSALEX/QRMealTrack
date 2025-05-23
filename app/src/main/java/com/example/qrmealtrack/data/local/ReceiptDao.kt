@@ -1,6 +1,7 @@
 package com.example.qrmealtrack.data.local
 
 import androidx.room.Dao
+import androidx.room.Delete
 import androidx.room.Insert
 import androidx.room.OnConflictStrategy
 import androidx.room.Query
@@ -22,4 +23,7 @@ interface ReceiptDao {
 
     @Query("SELECT * FROM ReceiptEntity WHERE fiscalCode = :fiscalCode AND dateTime = :dateTime")
     suspend fun getReceiptsByFiscalCodeAndDate(fiscalCode: String, dateTime: Long): List<ReceiptEntity>
+
+    @Query("DELETE FROM ReceiptEntity WHERE fiscalCode = :fiscalCode AND dateTime = :dateTime")
+    suspend fun deleteReceiptGroup(fiscalCode: String, dateTime: Long)
 }
