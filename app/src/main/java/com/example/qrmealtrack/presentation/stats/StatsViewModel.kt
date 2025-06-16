@@ -7,6 +7,7 @@ import com.example.qrmealtrack.domain.model.PriceChangeItem
 import com.example.qrmealtrack.domain.repository.ReceiptRepository
 import com.example.qrmealtrack.domain.usecase.GetFilteredStatsUseCase
 import com.example.qrmealtrack.domain.usecase.GetPriceDynamicsUseCase
+import com.example.qrmealtrack.domain.usecase.GetStatisticsUseCase
 import com.example.qrmealtrack.domain.usecase.StatsSummary
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -24,7 +25,7 @@ import javax.inject.Inject
 
 @HiltViewModel
 class StatsViewModel @Inject constructor(
-    private val getFilteredStatsUseCase: GetFilteredStatsUseCase,
+    private val getStatisticsUseCase: GetStatisticsUseCase,
     private val getPriceDynamicsUseCase: GetPriceDynamicsUseCase
 ) : ViewModel() {
 
@@ -42,7 +43,7 @@ class StatsViewModel @Inject constructor(
             _uiState
                 .map { it.selectedFilter }
                 .distinctUntilChanged()
-                .flatMapLatest { getFilteredStatsUseCase(it) }
+                .flatMapLatest { getStatisticsUseCase(it) }
                 .collect { stats ->
                     _uiState.update { it.copy(summary = stats) }
                 }

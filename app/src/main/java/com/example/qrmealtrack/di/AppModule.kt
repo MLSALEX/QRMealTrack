@@ -60,30 +60,6 @@ object AppModule {
 
     @Provides
     @Singleton
-    fun provideSaveParsedReceiptUseCase(
-        repository: ReceiptRepository
-    ): SaveParsedReceiptUseCase {
-        return SaveParsedReceiptUseCase(repository)
-    }
-
-    @Provides
-    @Singleton
-    fun provideGetReceiptsGroupedByDayUseCase(
-        repository: ReceiptRepository
-    ): GetReceiptsGroupedByDayUseCase {
-        return GetReceiptsGroupedByDayUseCase(repository)
-    }
-
-    @Provides
-    @Singleton
-    fun provideGetFilteredStatsUseCase(
-        repository: ReceiptRepository
-    ): GetFilteredStatsUseCase {
-        return GetFilteredStatsUseCase(repository)
-    }
-
-    @Provides
-    @Singleton
     fun provideGetPriceDynamicsUseCase(
         repository: ReceiptRepository
     ): GetPriceDynamicsUseCase {

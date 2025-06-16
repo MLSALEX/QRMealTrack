@@ -28,9 +28,7 @@ class HomeViewModel @Inject constructor(
         viewModelScope.launch {
             repository.getAllReceipts()
                 .map { list ->
-                    list
-                        .map { it.toDomain() } // преобразование в Receipt
-                        .groupBy { receipt ->
+                    list.groupBy { receipt ->
                             SimpleDateFormat("dd.MM.yyyy", Locale.getDefault())
                                 .format(Date(receipt.dateTime))
                         }
