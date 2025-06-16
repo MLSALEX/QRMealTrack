@@ -12,6 +12,5 @@ class GetAllReceiptsUseCase(
 ) {
     operator fun invoke(): Flow<List<Receipt>> {
         return repository.getAllReceipts()
-            .map { it.groupByFiscalCode() }
     }
 }

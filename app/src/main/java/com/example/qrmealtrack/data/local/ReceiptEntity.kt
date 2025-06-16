@@ -14,5 +14,6 @@ data class ReceiptEntity(
     val price: Double,
     val dateTime: Long,
     val type: String,
-    val total: Double
+    val unitPrice: Double,
+    val total: Double,
 )

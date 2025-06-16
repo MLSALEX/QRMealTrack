@@ -184,6 +184,7 @@ fun parseQrToReceipt(rawValue: String): ReceiptEntity? {
             itemName = parts[2],
             weight = parts[3].toDouble(),
             price = parts[4].toDouble(),
+            unitPrice = pricePerUnit,
             dateTime = System.currentTimeMillis(),
             type = parts[5],
             total = total
