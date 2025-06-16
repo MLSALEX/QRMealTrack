@@ -2,4 +2,10 @@
 <resources>
 
     <style name="Theme.QRMealTrack" parent="android:Theme.Material.Light.NoActionBar" />
+
+    <style name="Theme.QRMealTrack.Splash" parent="Theme.SplashScreen">
+        <item name="windowSplashScreenBackground">@color/splash_background</item>
+        <item name="windowSplashScreenAnimatedIcon">@drawable/qr_logo</item>
+        <item name="postSplashScreenTheme">@style/Theme.QRMealTrack</item>
+    </style>
 </resources>
