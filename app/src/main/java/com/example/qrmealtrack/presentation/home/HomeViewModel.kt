@@ -2,7 +2,6 @@ package com.example.qrmealtrack.presentation.home
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.example.qrmealtrack.data.mapper.toDomain
 import com.example.qrmealtrack.domain.model.Receipt
 import com.example.qrmealtrack.domain.repository.ReceiptRepository
 import dagger.hilt.android.lifecycle.HiltViewModel

@@ -65,11 +65,9 @@ fun parseTextToReceipts(text: String): ParsedReceipt? {
                         enterprise = "Web Receipt",
                         itemName = itemName,
                         weight = weight,
-                        unitPrice = unitPrice,
                         price = price,
                         dateTime = finalDateTime,
                         type = "Web",
-                        total = price
                     )
                 )
                 i += 2
@@ -92,11 +90,9 @@ fun parseTextToReceipts(text: String): ParsedReceipt? {
                         enterprise = "Web Receipt",
                         itemName = itemName,
                         weight = weight,
-                        unitPrice = unitPrice,
                         price = price,
                         dateTime = finalDateTime,
                         type = "Web",
-                        total = price
                     )
                 )
                 i += 3

@@ -15,47 +15,50 @@ fun Receipt.toEntityList(): List<ReceiptEntity> {
             itemName = meal.name,
             weight = meal.weight,
             price = meal.price,
-            unitPrice = meal.unitPrice,
-            total = this.total
         )
     }
 }
 
 fun List<ReceiptEntity>.toDomainReceipts(): List<Receipt> {
-    return this.groupBy { Triple(it.fiscalCode, it.dateTime, it.type) }.map { (_, group) ->
-        Receipt(
-            fiscalCode = group.first().fiscalCode,
-            enterprise = group.first().enterprise,
-            dateTime = group.first().dateTime,
-            type = group.first().type,
-            total = group.first().total, // или пересчитать
-            items = group.map {
+    return this.groupBy { Triple(it.fiscalCode, it.dateTime, it.type) }
+        .map { (_, group) ->
+            val first = group.first()
+            val items = group.map {
                 Meal(
                     name = it.itemName,
                     weight = it.weight,
-                    unitPrice = it.unitPrice,
+                    unitPrice = if (it.weight != 0.0) it.price / it.weight else 0.0,
                     price = it.price
                 )
             }
+        Receipt(
+            fiscalCode = first.fiscalCode,
+            enterprise = first.enterprise,
+            dateTime = first.dateTime,
+            type = first.type,
+            items = items,
+            total = items.sumOf { it.price }
         )
     }
 }
 
-// Преобразование ReceiptEntity -> Receipt с 1 блюдом
-fun ReceiptEntity.toDomain(): Receipt {
-    return Receipt(
-        fiscalCode = fiscalCode,
-        enterprise = enterprise,
-        dateTime = dateTime,
-        type = type,
-        items = listOf(
-            Meal(
-                name = itemName,
-                weight = weight,
-                unitPrice = unitPrice,
-                price = price
-            )
-        ),
-        total = total
-    )
+fun parseQrToReceipt(rawValue: String): ReceiptEntity? {
+    return try {
+        val parts = rawValue.split(";")
+        val weight = parts[3].toDouble()
+        val pricePerUnit = parts[4].toDouble()
+        val price = weight * pricePerUnit
+        ReceiptEntity(
+            fiscalCode = parts[0],
+            enterprise = parts[1],
+            itemName = parts[2],
+            weight = weight,
+            price = price,
+            dateTime = System.currentTimeMillis(),
+            type = parts[5]
+        )
+    } catch (e: Exception) {
+        e.printStackTrace()
+        null
+    }
 }
