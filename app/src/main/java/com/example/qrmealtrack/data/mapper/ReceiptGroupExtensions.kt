@@ -30,10 +30,3 @@ fun List<ReceiptEntity>.groupByFiscalCode(): List<Receipt> {
             )
         }
 }
-
-fun List<Receipt>.groupByDay(): Map<String, List<Receipt>> {
-    val dateFormatter = SimpleDateFormat("dd.MM.yyyy", Locale.getDefault())
-    return this.groupBy { receipt ->
-        dateFormatter.format(Date(receipt.dateTime))
-    }
-}

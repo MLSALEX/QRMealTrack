@@ -11,7 +11,6 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.text.ClickableText
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
@@ -23,7 +22,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.buildAnnotatedString
@@ -35,7 +33,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.navigation.NavHostController
 import com.example.qrmealtrack.R
-import com.example.qrmealtrack.data.local.ReceiptEntity
+import com.example.qrmealtrack.data.mapper.parseQrToReceipt
 import com.example.qrmealtrack.presentation.ReceiptListViewModel
 import com.example.qrmealtrack.presentation.components.TopBar
 import com.google.mlkit.vision.barcode.BarcodeScannerOptions
@@ -169,28 +167,5 @@ fun ScanScreen(
                 )
             }
         }
-    }
-}
-
-fun parseQrToReceipt(rawValue: String): ReceiptEntity? {
-    return try {
-        val parts = rawValue.split(";")
-        val weight = parts[3].toDouble()
-        val pricePerUnit = parts[4].toDouble()
-        val total = weight * pricePerUnit
-        ReceiptEntity(
-            fiscalCode = parts[0],
-            enterprise = parts[1],
-            itemName = parts[2],
-            weight = parts[3].toDouble(),
-            price = parts[4].toDouble(),
-            unitPrice = pricePerUnit,
-            dateTime = System.currentTimeMillis(),
-            type = parts[5],
-            total = total
-        )
-    } catch (e: Exception) {
-        e.printStackTrace()
-        null
     }
 }
