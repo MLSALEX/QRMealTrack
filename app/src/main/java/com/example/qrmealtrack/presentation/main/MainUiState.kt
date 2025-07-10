@@ -4,5 +4,5 @@ import androidx.compose.runtime.Immutable
 
 @Immutable
 data class MainUiState(
-    val currentTab:BottomTab = BottomTab.HOME
+    val currentTab: BottomTab = BottomTab.HOME
 )

@@ -24,6 +24,7 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import com.example.qrmealtrack.R
+import com.example.qrmealtrack.navigation.Screen
 import com.example.qrmealtrack.presentation.home.HomeScreen
 import com.example.qrmealtrack.presentation.stats.StatsScreen
 
@@ -52,13 +53,11 @@ fun MainScreen(
         bottomBar = {
             BottomNavigationBar(
                 currentTab = state.currentTab,
-                onTabSelected = { tab ->
-                    viewModel.onTabSelected(tab)
-                    navController.navigate(tab.route) {
+                onTabSelected = { tab  ->
+                    viewModel.onTabSelected(tab )
+                    navController.navigate(tab .route) {
                         launchSingleTop = true
-                        popUpTo(navController.graph.startDestinationId) {
-                            saveState = true
-                        }
+                        popUpTo(navController.graph.startDestinationId) { saveState = true }
                         restoreState = true
                     }
                 }
@@ -79,11 +78,9 @@ fun MainScreen(
                     navController = navController, // для перехода между табами
                     parentNavController = parentNavController, // для глобального перехода
                     onScanned = {
-                        navController.navigate(BottomTab.HOME.route) {
+                        navController.navigate(Screen.Home.route) {
                             launchSingleTop = true
-                            popUpTo(navController.graph.startDestinationId) {
-                                saveState = true
-                            }
+                            popUpTo(Screen.Home.route) { saveState = true }
                             restoreState = true
                         }
                     }
@@ -107,23 +104,27 @@ fun BottomNavigationBar(
             NavigationBarItem(
                 selected = tab == currentTab,
                 onClick = { onTabSelected(tab) },
-                icon = { Icon(
-                    painter = painterResource(id = tab.icon),
-                    contentDescription = null
-                )
+                icon = {
+                    Icon(
+                        painter = painterResource(id = tab.icon),
+                        contentDescription = null
+                    )
                 },
-                label = { Text(stringResource(tab.label)) }
+                label = { Text(text = stringResource(id = tab.label))}
             )
         }
     }
 }
 
 enum class BottomTab(
-    val route: String,
+    private val screen: Screen, // Связываем с sealed class
     @StringRes val label: Int,
     @DrawableRes val icon: Int
 ) {
-    HOME("home", R.string.home, R.drawable.home_icon),
-    SCAN("scan", R.string.scan, R.drawable.scan_icon),
-    STATS("stats", R.string.stats, R.drawable.trending_up)
+    HOME(Screen.Home, R.string.home, R.drawable.home_icon),
+    SCAN(Screen.Scan, R.string.scan, R.drawable.scan_icon),
+    STATS(Screen.Stats, R.string.stats, R.drawable.trending_up);
+
+    val route: String
+        get() = screen.route // Получаем маршрут напрямую
 }
