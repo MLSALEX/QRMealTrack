@@ -1,6 +1,8 @@
 package com.example.qrmealtrack.navigation
 
 import android.util.Log
+import androidx.annotation.DrawableRes
+import androidx.annotation.StringRes
 import androidx.compose.runtime.Composable
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavHostController
@@ -14,16 +16,25 @@ import com.example.qrmealtrack.presentation.main.MainViewModel
 import com.example.qrmealtrack.presentation.permission.PermissionScreen
 import com.example.qrmealtrack.presentation.scan.ScanScreen
 import java.net.URLDecoder
+import java.net.URLEncoder
 
-sealed class Screen(val route: String) {
+sealed class Screen(
+    val route: String
+) {
     data object Permission : Screen("permission")
     data object Main : Screen("main")
+    data object Home : Screen("home")
+    data object Scan : Screen("scan")
+    data object Stats : Screen("stats")
+    data class ReceiptFromWeb(val url: String) : Screen("receipt_from_web/{url}") {
+        fun createRoute(url: String) = "receipt_from_web/${URLEncoder.encode(url, "UTF-8")}"
+    }
 }
 
 @Composable
 fun NavGraph(navController: NavHostController) {
     NavHost(navController, startDestination = Screen.Permission.route) {
-        composable("permission") {
+        composable(Screen.Permission.route) {
             PermissionScreen(
                 permission = android.Manifest.permission.CAMERA,
                 onPermissionGranted = {  navController.navigate(Screen.Main.route) },
@@ -35,7 +46,7 @@ fun NavGraph(navController: NavHostController) {
         }
 
         composable(
-            route = "receipt_from_web/{url}",
+            route =  Screen.ReceiptFromWeb("{url}").route,
             arguments = listOf(navArgument("url") { type = NavType.StringType })
         ) { backStackEntry ->
             val encodedUrl = backStackEntry.arguments?.getString("url") ?: ""
