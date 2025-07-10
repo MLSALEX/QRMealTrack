@@ -3,6 +3,11 @@ package com.example.qrmealtrack.data.mapper
 import com.example.qrmealtrack.data.local.ReceiptEntity
 import com.example.qrmealtrack.domain.model.Meal
 import com.example.qrmealtrack.domain.model.Receipt
+import com.example.qrmealtrack.presentation.model.MealUiModel
+import com.example.qrmealtrack.presentation.model.ReceiptUiModel
+import java.text.SimpleDateFormat
+import java.util.Date
+import java.util.Locale
 
 // Преобразование Receipt -> List<ReceiptEntity>
 fun Receipt.toEntityList(): List<ReceiptEntity> {
@@ -31,6 +36,7 @@ fun List<ReceiptEntity>.toDomainReceipts(): List<Receipt> {
                     price = it.price
                 )
             }
+
         Receipt(
             id = first.id,
             fiscalCode = first.fiscalCode,
@@ -62,4 +68,25 @@ fun parseQrToReceipt(rawValue: String): ReceiptEntity? {
         e.printStackTrace()
         null
     }
+}
+
+fun Receipt.toUiModel(): ReceiptUiModel {
+    val formattedDate = SimpleDateFormat("dd.MM.yyyy HH:mm", Locale.getDefault())
+        .format(Date(dateTime))
+
+    return ReceiptUiModel(
+        id = id,
+        fiscalCode = fiscalCode,
+        dateTime = dateTime,
+        date = formattedDate,
+        total = "%.2f".format(total),
+        items = items.map {
+            return@map MealUiModel(
+                name = it.name,
+                weight = "%.2f".format(it.weight),
+                unitPrice = "%.2f".format(it.unitPrice),
+                price = "%.2f".format(it.price)
+            )
+        }
+    )
 }
