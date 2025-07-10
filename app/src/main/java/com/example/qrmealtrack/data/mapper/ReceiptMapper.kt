@@ -32,6 +32,7 @@ fun List<ReceiptEntity>.toDomainReceipts(): List<Receipt> {
                 )
             }
         Receipt(
+            id = first.id,
             fiscalCode = first.fiscalCode,
             enterprise = first.enterprise,
             dateTime = first.dateTime,

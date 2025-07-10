@@ -89,7 +89,7 @@ fun HomeScreen(
     ) {
         receiptsByDay.forEach { (day, receipts) ->
             val totalForDay = receipts.sumOf { it.total }
-            item {
+            item (key = "header_$day"){
                 Text(
                     text = buildString {
                         append(if (isToday(day)) "Сегодня" else day)
@@ -99,7 +99,10 @@ fun HomeScreen(
                     modifier = Modifier.padding(bottom = 4.dp)
                 )
             }
-            items(receipts) { receipt ->
+            items(
+                items = receipts,
+                key = { it.id }
+            ) { receipt ->
                 ReceiptCard(receipt = receipt, onLongClick = {
                     receiptToDelete = receipt
                 })
