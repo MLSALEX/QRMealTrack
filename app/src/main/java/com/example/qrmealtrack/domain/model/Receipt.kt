@@ -4,6 +4,7 @@ import androidx.compose.runtime.Immutable
 
 @Immutable
 data class Receipt(
+    val id: Long,
     val fiscalCode: String,
     val enterprise: String,
     val dateTime: Long,

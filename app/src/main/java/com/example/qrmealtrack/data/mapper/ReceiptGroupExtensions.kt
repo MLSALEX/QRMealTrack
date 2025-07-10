@@ -14,6 +14,7 @@ fun List<ReceiptEntity>.groupByFiscalCode(): List<Receipt> {
         .map { (fiscalCode, entries) ->
             val first = entries.first()
             Receipt(
+                id = first.id,
                 fiscalCode = fiscalCode,
                 enterprise = first.enterprise,
                 dateTime = first.dateTime,
