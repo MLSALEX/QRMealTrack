@@ -2,17 +2,15 @@ package com.example.qrmealtrack.presentation.home
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.example.qrmealtrack.domain.model.Receipt
+import com.example.qrmealtrack.data.mapper.toUiModel
 import com.example.qrmealtrack.domain.repository.ReceiptRepository
+import com.example.qrmealtrack.presentation.model.ReceiptUiModel
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
-import java.text.SimpleDateFormat
-import java.util.Date
-import java.util.Locale
 import javax.inject.Inject
 
 @HiltViewModel
@@ -27,9 +25,9 @@ class HomeViewModel @Inject constructor(
         viewModelScope.launch {
             repository.getAllReceipts()
                 .map { list ->
-                    list.groupBy { receipt ->
-                            SimpleDateFormat("dd.MM.yyyy", Locale.getDefault())
-                                .format(Date(receipt.dateTime))
+                    list.map { it.toUiModel() }
+                        .groupBy { receipt ->
+                            receipt.date
                         }
                 }
                 .collect { grouped ->
@@ -37,7 +35,8 @@ class HomeViewModel @Inject constructor(
                 }
         }
     }
-    fun deleteReceipt(receipt: Receipt) {
+
+    fun deleteReceipt(receipt: ReceiptUiModel) {
         viewModelScope.launch {
             repository.deleteReceiptGroup(receipt.fiscalCode, receipt.dateTime)
         }

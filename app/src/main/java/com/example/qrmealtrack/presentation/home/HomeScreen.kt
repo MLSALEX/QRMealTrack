@@ -2,7 +2,6 @@ package com.example.qrmealtrack.presentation.home
 
 import android.util.Log
 import androidx.compose.foundation.ExperimentalFoundationApi
-import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -33,8 +32,9 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.example.qrmealtrack.R
-import com.example.qrmealtrack.domain.model.Receipt
+import com.example.qrmealtrack.data.mapper.toUiModel
 import com.example.qrmealtrack.presentation.ReceiptListViewModel
+import com.example.qrmealtrack.presentation.model.ReceiptUiModel
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
@@ -43,7 +43,7 @@ import java.util.Locale
 fun HomeScreen(
     viewModel: ReceiptListViewModel = hiltViewModel(),
     homeViewModel: HomeViewModel = hiltViewModel()
-    ) {
+) {
     val state by viewModel.state.collectAsState()
     val homeState by homeViewModel.state.collectAsState()
 
@@ -52,7 +52,7 @@ fun HomeScreen(
             SimpleDateFormat("dd.MM.yyyy", Locale.getDefault()).parse(dateStr)?.time ?: 0L
         })
     }
-    var receiptToDelete by remember { mutableStateOf<Receipt?>(null) }
+    var receiptToDelete by remember { mutableStateOf<ReceiptUiModel?>(null) }
 
     // Диалог подтверждения удаления
     receiptToDelete?.let { receipt ->
@@ -89,7 +89,7 @@ fun HomeScreen(
     ) {
         receiptsByDay.forEach { (day, receipts) ->
             val totalForDay = receipts.sumOf { it.total }
-            item (key = "header_$day"){
+            item(key = "header_$day") {
                 Text(
                     text = buildString {
                         append(if (isToday(day)) "Сегодня" else day)
@@ -103,20 +103,17 @@ fun HomeScreen(
                 items = receipts,
                 key = { it.id }
             ) { receipt ->
-                ReceiptCard(receipt = receipt, onLongClick = {
-                    receiptToDelete = receipt
+                ReceiptCard(receipt = receipt.toUiModel(), onLongClick = {
+                    receiptToDelete = receipt.toUiModel()
                 })
             }
         }
     }
 }
+
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
-fun ReceiptCard(receipt: Receipt, onLongClick: () -> Unit) {
-    val formattedDate = remember(receipt.dateTime) {
-        SimpleDateFormat("dd.MM.yyyy HH:mm", Locale.getDefault())
-            .format(Date(receipt.dateTime))
-    }
+fun ReceiptCard(receipt: ReceiptUiModel, onLongClick: () -> Unit) {
     Card(
         modifier = Modifier
             .fillMaxWidth()
@@ -129,13 +126,13 @@ fun ReceiptCard(receipt: Receipt, onLongClick: () -> Unit) {
     ) {
         Column(modifier = Modifier.padding(16.dp)) {
             Text(
-                text = "Date: $formattedDate",
+                text = "Date: ${receipt.date}",
                 style = MaterialTheme.typography.titleMedium
             )
             Spacer(modifier = Modifier.height(8.dp))
             receipt.items.forEach { meal ->
                 Text(
-                    text = "${meal.name}: ${meal.weight} × ${"%.2f".format(meal.unitPrice)} = ${"%.2f".format(meal.price)}",
+                    text = "${meal.name}: ${meal.weight} × ${meal.unitPrice} = ${meal.price}",
                     style = MaterialTheme.typography.bodyMedium
                 )
             }
@@ -147,6 +144,7 @@ fun ReceiptCard(receipt: Receipt, onLongClick: () -> Unit) {
         }
     }
 }
+
 fun isToday(dateStr: String): Boolean {
     val format = SimpleDateFormat("dd.MM.yyyy", Locale.getDefault())
     val today = format.format(Date())
