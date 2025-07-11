@@ -1,4 +1,4 @@
-package com.example.qrmealtrack.presentation
+package com.example.qrmealtrack.presentation.receipt
 
 import android.webkit.WebView
 import android.webkit.WebViewClient
@@ -76,7 +76,7 @@ fun ReceiptFromWebScreen(
 
                                     withContext(Dispatchers.Main) {
                                         if (parsed != null) {
-                                            viewModel.saveParsedReceipt(parsed)
+                                            viewModel.onAction(ReceiptUiAction.SaveParsed(parsed))
                                             Toast.makeText(context, "Сохранено ${parsed.items.size} блюд, всего: ${parsed.total} MDL", Toast.LENGTH_SHORT).show()
                                             onDone()
                                         } else {

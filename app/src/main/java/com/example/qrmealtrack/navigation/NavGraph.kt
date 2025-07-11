@@ -1,8 +1,5 @@
 package com.example.qrmealtrack.navigation
 
-import android.util.Log
-import androidx.annotation.DrawableRes
-import androidx.annotation.StringRes
 import androidx.compose.runtime.Composable
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavHostController
@@ -10,11 +7,10 @@ import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.navArgument
-import com.example.qrmealtrack.presentation.ReceiptFromWebScreen
+import com.example.qrmealtrack.presentation.receipt.ReceiptFromWebScreen
 import com.example.qrmealtrack.presentation.main.MainScreen
 import com.example.qrmealtrack.presentation.main.MainViewModel
 import com.example.qrmealtrack.presentation.permission.PermissionScreen
-import com.example.qrmealtrack.presentation.scan.ScanScreen
 import java.net.URLDecoder
 import java.net.URLEncoder
 

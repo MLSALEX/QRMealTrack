@@ -14,5 +14,7 @@ data class Meal(
     val name: String,
     val weight: Double,
     val unitPrice: Double,
-    val price: Double
+    val price: Double,
+    val isWeightBased: Boolean = false,
+    val category: String? = null
 )

@@ -34,8 +34,9 @@ import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.navigation.NavHostController
 import com.example.qrmealtrack.R
 import com.example.qrmealtrack.data.mapper.parseQrToReceipt
-import com.example.qrmealtrack.presentation.ReceiptListViewModel
 import com.example.qrmealtrack.presentation.components.TopBar
+import com.example.qrmealtrack.presentation.receipt.ReceiptListViewModel
+import com.example.qrmealtrack.presentation.receipt.ReceiptUiAction
 import com.google.mlkit.vision.barcode.BarcodeScannerOptions
 import com.google.mlkit.vision.barcode.BarcodeScanning
 import com.google.mlkit.vision.barcode.common.Barcode
@@ -81,7 +82,7 @@ fun ScanScreen(
 
                         // ✅ Если это ссылка — получаем информацию о странице
                         if (Patterns.WEB_URL.matcher(rawValue).matches()) {
-                            viewModel.fetchWebPageInfo(rawValue)
+                            viewModel.onAction(ReceiptUiAction.FetchWebPageInfo(rawValue))
                         }
 
                         // ✅ Если это Receipt — сохраняем

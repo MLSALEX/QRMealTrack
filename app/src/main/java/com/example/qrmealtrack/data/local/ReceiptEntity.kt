@@ -14,6 +14,8 @@ data class ReceiptEntity(
     val price: Double, // цена за товар
     val dateTime: Long,
     val type: String,
+    val isWeightBased: Boolean = false, // ← весовой товар
+    val category: String? = null
 //    val unitPrice: Double, // считано с чека, не пересчитывается
 //    val total: Double, // сумма по чеку, считана с чека
 )
