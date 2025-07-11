@@ -4,6 +4,7 @@ import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.qrmealtrack.data.local.ReceiptEntity
+import com.example.qrmealtrack.data.mapper.toUiModel
 import com.example.qrmealtrack.domain.model.Receipt
 import com.example.qrmealtrack.domain.repository.ReceiptRepository
 import com.example.qrmealtrack.domain.usecase.FetchWebPageInfoUseCase
@@ -52,10 +53,13 @@ class ReceiptListViewModel @Inject constructor(
                 result.receiptsByDay.forEach { (date, list) ->
                     Log.d("📅", "$date → ${list.size} чеков")
                 }
+                val uiReceiptsByDay = result.receiptsByDay.mapValues { (_, list) ->
+                    list.map { it.toUiModel() }
+                }
 
                 _state.update {
                     it.copy(
-                        receiptsByDay = result.receiptsByDay,
+                        receiptsByDay = uiReceiptsByDay,
                         totalsByDay = result.totalsByDay,
                         // если хочешь посчитать stats:
                         statistics = calculateStats(result.receiptsByDay.values.flatten())

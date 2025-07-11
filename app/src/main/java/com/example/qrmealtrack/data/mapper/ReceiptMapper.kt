@@ -8,6 +8,7 @@ import com.example.qrmealtrack.presentation.model.ReceiptUiModel
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
+import kotlin.math.roundToInt
 
 // Преобразование Receipt -> List<ReceiptEntity>
 fun Receipt.toEntityList(): List<ReceiptEntity> {
@@ -79,7 +80,7 @@ fun Receipt.toUiModel(): ReceiptUiModel {
         fiscalCode = fiscalCode,
         dateTime = dateTime,
         date = formattedDate,
-        total = "%.2f".format(total),
+        total = total.roundTo2Decimals(),
         items = items.map {
             return@map MealUiModel(
                 name = it.name,
@@ -89,4 +90,5 @@ fun Receipt.toUiModel(): ReceiptUiModel {
             )
         }
     )
-}
+}fun Double.roundTo2Decimals(): Double =
+    (this * 100).roundToInt() / 100.0
