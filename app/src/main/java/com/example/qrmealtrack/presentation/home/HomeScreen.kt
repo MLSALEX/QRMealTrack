@@ -88,11 +88,11 @@ fun HomeScreen(
         verticalArrangement = Arrangement.spacedBy(12.dp)
     ) {
         receiptsByDay.forEach { (day, receipts) ->
-            val totalForDay = receipts.sumOf { it.total.replace(",", ".").toDouble() }
+            val totalForDay = receipts.sumOf { it.total}
             item(key = "header_$day") {
                 Text(
                     text = buildString {
-                        append(if (isToday(day)) "Сегодня" else day)
+                        append(if (isToday(day)) "Today" else day)
                         append(" — total: %.2f MDL".format(totalForDay))
                     },
                     style = MaterialTheme.typography.titleLarge,
