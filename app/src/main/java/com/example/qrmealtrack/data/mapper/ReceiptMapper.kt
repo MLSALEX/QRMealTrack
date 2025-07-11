@@ -90,6 +90,7 @@ fun Receipt.toUiModel(): ReceiptUiModel {
     return ReceiptUiModel(
         id = id,
         fiscalCode = fiscalCode,
+        enterprise = enterprise,
         dateTime = dateTime,
         date = formattedDate,
         total = total.roundTo2Decimals(),

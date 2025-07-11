@@ -6,6 +6,7 @@ import androidx.compose.runtime.Immutable
 data class ReceiptUiModel(
     val id: Long,
     val fiscalCode: String,
+    val enterprise: String,
     val dateTime: Long,
     val date: String,
     val items: List<MealUiModel>,
