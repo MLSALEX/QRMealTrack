@@ -17,5 +17,7 @@ data class MealUiModel(
     val name: String,
     val weight: String,
     val unitPrice: String,
-    val price: String
+    val price: String,
+    val category: String? = null,
+    val isWeightBased: Boolean = false
 )

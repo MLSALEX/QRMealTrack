@@ -13,6 +13,9 @@ import kotlin.math.roundToInt
 // Преобразование Receipt -> List<ReceiptEntity>
 fun Receipt.toEntityList(): List<ReceiptEntity> {
     return items.map { meal ->
+        val isWeight = meal.weight < 10.0
+        val autoCategory = if (enterprise.contains("CAFENEA", true)) "food" else null
+
         ReceiptEntity(
             fiscalCode = this.fiscalCode,
             enterprise = this.enterprise,
@@ -21,6 +24,8 @@ fun Receipt.toEntityList(): List<ReceiptEntity> {
             itemName = meal.name,
             weight = meal.weight,
             price = meal.price,
+            isWeightBased = isWeight,
+            category = autoCategory
         )
     }
 }
@@ -34,7 +39,9 @@ fun List<ReceiptEntity>.toDomainReceipts(): List<Receipt> {
                     name = it.itemName,
                     weight = it.weight,
                     unitPrice = if (it.weight != 0.0) it.price / it.weight else 0.0,
-                    price = it.price
+                    price = it.price,
+                    isWeightBased = it.isWeightBased,
+                    category = it.category
                 )
             }
 
@@ -56,6 +63,9 @@ fun parseQrToReceipt(rawValue: String): ReceiptEntity? {
         val weight = parts[3].toDouble()
         val pricePerUnit = parts[4].toDouble()
         val price = weight * pricePerUnit
+
+        val isWeightBased = weight in 0.01..10.0
+
         ReceiptEntity(
             fiscalCode = parts[0],
             enterprise = parts[1],
@@ -63,7 +73,9 @@ fun parseQrToReceipt(rawValue: String): ReceiptEntity? {
             weight = weight,
             price = price,
             dateTime = System.currentTimeMillis(),
-            type = parts[5]
+            type = parts[5],
+            isWeightBased = isWeightBased,
+            category = null
         )
     } catch (e: Exception) {
         e.printStackTrace()
@@ -86,9 +98,12 @@ fun Receipt.toUiModel(): ReceiptUiModel {
                 name = it.name,
                 weight = "%.2f".format(it.weight),
                 unitPrice = "%.2f".format(it.unitPrice),
-                price = "%.2f".format(it.price)
+                price = "%.2f".format(it.price),
+                isWeightBased = it.isWeightBased,
+                category = it.category
             )
         }
     )
-}fun Double.roundTo2Decimals(): Double =
+}
+fun Double.roundTo2Decimals(): Double =
     (this * 100).roundToInt() / 100.0
