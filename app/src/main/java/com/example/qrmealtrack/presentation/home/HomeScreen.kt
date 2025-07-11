@@ -88,7 +88,7 @@ fun HomeScreen(
         verticalArrangement = Arrangement.spacedBy(12.dp)
     ) {
         receiptsByDay.forEach { (day, receipts) ->
-            val totalForDay = receipts.sumOf { it.total }
+            val totalForDay = receipts.sumOf { it.total.replace(",", ".").toDouble() }
             item(key = "header_$day") {
                 Text(
                     text = buildString {
@@ -103,8 +103,8 @@ fun HomeScreen(
                 items = receipts,
                 key = { it.id }
             ) { receipt ->
-                ReceiptCard(receipt = receipt.toUiModel(), onLongClick = {
-                    receiptToDelete = receipt.toUiModel()
+                ReceiptCard(receipt = receipt, onLongClick = {
+                    receiptToDelete = receipt
                 })
             }
         }

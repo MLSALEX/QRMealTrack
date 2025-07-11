@@ -3,13 +3,14 @@ package com.example.qrmealtrack.presentation
 import androidx.compose.runtime.Immutable
 import com.example.qrmealtrack.data.local.ReceiptEntity
 import com.example.qrmealtrack.domain.model.Receipt
+import com.example.qrmealtrack.presentation.model.ReceiptUiModel
 
 @Immutable
 data class ReceiptUiState(
     val receipts: List<ReceiptEntity> = emptyList(),
     val statistics: Statistics = Statistics(),
     val webPageInfo: String? = null,
-    val receiptsByDay: Map<String, List<Receipt>> = emptyMap(),
+    val receiptsByDay: Map<String, List<ReceiptUiModel>> = emptyMap(),
     val totalsByDay: Map<String, Double> = emptyMap()
 )
 

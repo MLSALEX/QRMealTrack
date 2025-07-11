@@ -25,7 +25,11 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.example.qrmealtrack.presentation.utils.parseTextToReceipts
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.collectLatest
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 @Composable
 fun ReceiptFromWebScreen(
@@ -67,16 +71,19 @@ fun ReceiptFromWebScreen(
 
                                 extractedText = cleaned
 
-                                val parsed = parseTextToReceipts(cleaned)
+                                CoroutineScope(Dispatchers.Default).launch {
+                                    val parsed = parseTextToReceipts(cleaned)
 
-                                if (parsed != null) {
-                                    viewModel.saveParsedReceipt(parsed)
-                                    Toast.makeText(context, "Сохранено ${parsed.items.size} блюд, всего: ${parsed.total} MDL", Toast.LENGTH_SHORT).show()
-                                    onDone()
-                                } else {
-                                    Toast.makeText(context, "Не удалось распознать чек", Toast.LENGTH_LONG).show()
+                                    withContext(Dispatchers.Main) {
+                                        if (parsed != null) {
+                                            viewModel.saveParsedReceipt(parsed)
+                                            Toast.makeText(context, "Сохранено ${parsed.items.size} блюд, всего: ${parsed.total} MDL", Toast.LENGTH_SHORT).show()
+                                            onDone()
+                                        } else {
+                                            Toast.makeText(context, "Не удалось распознать чек", Toast.LENGTH_LONG).show()
+                                        }
+                                    }
                                 }
-
                             }
                         }
                     }
