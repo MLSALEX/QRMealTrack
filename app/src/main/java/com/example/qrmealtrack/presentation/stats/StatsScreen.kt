@@ -38,29 +38,29 @@ import com.example.qrmealtrack.R
 import com.example.qrmealtrack.domain.model.PriceChangeItem
 import androidx.compose.material.icons.filled.ArrowUpward
 import androidx.compose.material.icons.filled.ArrowDownward
+import com.example.qrmealtrack.presentation.stats.model.format
 
 
 @Composable
 fun StatsScreen(viewModel: StatsViewModel = hiltViewModel()) {
     val state by viewModel.uiState.collectAsState()
+    val model = state.uiModel
 
     Column(modifier = Modifier.fillMaxSize()) {
         TimeFilterRow(selected = state.selectedFilter, onSelect = viewModel::onFilterSelected)
 
         StatsGrid(
-            weight = "${state.summary.totalWeight.format(3)} kg",
-            cost = "MDL ${state.summary.totalCost.format(2)}",
-            topDish = state.summary.topDish ?: "–",
-            topDishCost = "MDL${state.summary.topDishCost.format(2)}",
-            priceChanges = state.summary.priceChanges,
-            priceUpCount = state.summary.priceUpCount,
-            priceDownCount = state.summary.priceDownCount,
-            priceDynamics = state.priceDynamics
+            weight = model.formattedWeight,
+            cost = model.formattedCost,
+            topDish = model.topDish,
+            topDishCost = model.formattedTopDishCost,
+            priceChanges = model.priceChanges,
+            priceUpCount = model.priceUpCount,
+            priceDownCount = model.priceDownCount,
+            priceDynamics = model.priceDynamics
         )
     }
 }
-
-fun Double.format(digits: Int): String = "%.${digits}f".format(this)
 
 @Composable
 fun TimeFilterRow(
