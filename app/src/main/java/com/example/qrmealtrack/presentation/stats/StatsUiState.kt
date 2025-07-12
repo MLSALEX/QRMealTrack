@@ -2,6 +2,8 @@ package com.example.qrmealtrack.presentation.stats
 
 import com.example.qrmealtrack.domain.model.PriceChangeItem
 import com.example.qrmealtrack.domain.usecase.StatsSummary
+import com.example.qrmealtrack.presentation.stats.model.StatsUiModel
+import com.example.qrmealtrack.presentation.stats.model.toUiModel
 
 data class StatsUiState(
     val summary: StatsSummary = StatsSummary(
@@ -15,4 +17,7 @@ data class StatsUiState(
     ),
     val priceDynamics: List<PriceChangeItem> = emptyList(),
     val selectedFilter: TimeFilter = TimeFilter.Week
-)
+){
+    val uiModel: StatsUiModel
+        get() = summary.toUiModel(priceDynamics)
+}
