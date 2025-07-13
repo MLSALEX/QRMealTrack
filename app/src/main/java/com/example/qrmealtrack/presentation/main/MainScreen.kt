@@ -2,11 +2,15 @@ package com.example.qrmealtrack.presentation.main
 
 import androidx.annotation.DrawableRes
 import androidx.annotation.StringRes
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.consumeWindowInsets
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.navigationBars
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.systemBars
+import androidx.compose.foundation.layout.statusBars
 import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.Scaffold
@@ -27,9 +31,8 @@ import androidx.navigation.compose.rememberNavController
 import com.example.qrmealtrack.R
 import com.example.qrmealtrack.navigation.Screen
 import com.example.qrmealtrack.presentation.home.HomeScreen
-import com.example.qrmealtrack.presentation.stats.StatsScreen
-
 import com.example.qrmealtrack.presentation.scan.ScanScreen
+import com.example.qrmealtrack.presentation.stats.StatsScreen
 
 @Composable
 fun MainScreen(
@@ -40,6 +43,7 @@ fun MainScreen(
     val navController = rememberNavController()
     val navBackStackEntry by navController.currentBackStackEntryAsState()
     val savedStateHandle = navBackStackEntry?.savedStateHandle
+    val background = MaterialTheme.colorScheme.background
 
     // Listen for result from ReceiptFromWebScreen
     LaunchedEffect(savedStateHandle) {
@@ -51,6 +55,10 @@ fun MainScreen(
     }
 
     Scaffold(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(MaterialTheme.colorScheme.background),
+        contentWindowInsets = WindowInsets.statusBars,
         bottomBar = {
             BottomNavigationBar(
                 currentTab = state.currentTab,
@@ -63,13 +71,14 @@ fun MainScreen(
                     }
                 }
             )
-        },
-        contentWindowInsets = WindowInsets.systemBars
-    ) { padding ->
+        }
+    ) { innerPadding ->
         NavHost(
             navController = navController,
             startDestination = BottomTab.HOME.route,
-            modifier = Modifier.padding(padding)
+            modifier = Modifier
+                .padding(innerPadding)
+                .consumeWindowInsets(WindowInsets.navigationBars)
         ) {
             composable(BottomTab.HOME.route) {
                 HomeScreen()
