@@ -1,18 +1,25 @@
 package com.example.qrmealtrack.presentation.stats
 
-// Vico Core
+import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-
+import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.ArrowDownward
+import androidx.compose.material.icons.filled.ArrowUpward
 import androidx.compose.material.icons.filled.DateRange
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
@@ -24,43 +31,72 @@ import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.unit.dp
-import androidx.hilt.navigation.compose.hiltViewModel
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.width
+import androidx.compose.ui.graphics.RectangleShape
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.painter.Painter
+import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.dp
+import androidx.hilt.navigation.compose.hiltViewModel
 import com.example.qrmealtrack.R
 import com.example.qrmealtrack.domain.model.PriceChangeItem
-import androidx.compose.material.icons.filled.ArrowUpward
-import androidx.compose.material.icons.filled.ArrowDownward
+import com.example.qrmealtrack.domain.usecase.StatsSummary
 import com.example.qrmealtrack.presentation.stats.model.format
-
+import com.example.qrmealtrack.ui.theme.stats.StatsTheme
+import com.example.qrmealtrack.ui.theme.stats.StatsTheme.colors
+import com.example.qrmealtrack.ui.theme.stats.glassGlowBackground
 
 @Composable
 fun StatsScreen(viewModel: StatsViewModel = hiltViewModel()) {
     val state by viewModel.uiState.collectAsState()
+
+    StatsScreenContent(
+        state = state,
+        onFilterSelected = remember { viewModel::onFilterSelected }
+    )
+}
+
+@Composable
+fun StatsScreenContent(
+    state: StatsUiState,
+    onFilterSelected: (TimeFilter) -> Unit
+) {
     val model = state.uiModel
+    val colors = StatsTheme.colors
 
-    Column(modifier = Modifier.fillMaxSize()) {
-        TimeFilterRow(selected = state.selectedFilter, onSelect = viewModel::onFilterSelected)
+    StatsTheme {
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .background(colors.background)
+        ) {
+            TimeFilterRow(
+                selected = state.selectedFilter,
+                onSelect = onFilterSelected
+            )
 
-        StatsGrid(
-            weight = model.formattedWeight,
-            cost = model.formattedCost,
-            topDish = model.topDish,
-            topDishCost = model.formattedTopDishCost,
-            priceChanges = model.priceChanges,
-            priceUpCount = model.priceUpCount,
-            priceDownCount = model.priceDownCount,
-            priceDynamics = model.priceDynamics
-        )
+            StatsGrid(
+                weight = model.formattedWeight,
+                cost = model.formattedCost,
+                topDish = model.topDish,
+                topDishCost = model.formattedTopDishCost,
+                priceChanges = model.priceChanges,
+                priceUpCount = model.priceUpCount,
+                priceDownCount = model.priceDownCount,
+                priceDynamics = model.priceDynamics
+            )
+        }
     }
 }
+
 
 @Composable
 fun TimeFilterRow(
@@ -68,11 +104,19 @@ fun TimeFilterRow(
     onSelect: (TimeFilter) -> Unit,
     modifier: Modifier = Modifier
 ) {
+    val colors = StatsTheme.colors
+
     Row(
         modifier = modifier
             .fillMaxWidth()
-            .background(Color(0xFFF5F5F5), RoundedCornerShape(24.dp))
-            .padding(horizontal = 8.dp, vertical = 4.dp),
+            .glassGlowBackground(
+                glowRed = colors.glowRed,
+                glowBlue = colors.glowBlue,
+                backgroundColor = colors.cardBackground,
+                shape = RectangleShape,
+                glowAlpha = 0.5f
+            )
+            .padding(8.dp),
         horizontalArrangement = Arrangement.SpaceBetween,
         verticalAlignment = Alignment.CenterVertically
     ) {
@@ -90,24 +134,26 @@ fun TimeFilterRow(
             modifier = Modifier
                 .padding(horizontal = 8.dp)
                 .size(24.dp),
-            tint = Color.Black
+            tint = colors.textSecondary
         )
     }
 }
 
 @Composable
-fun FilterButton(label: String, selected: Boolean, onClick: () -> Unit) {
-    TextButton(
-        onClick = onClick,
-        colors = ButtonDefaults.textButtonColors(
-            containerColor = if (selected) Color(0xFF2979FF) else Color.Transparent,
-            contentColor = if (selected) Color.White else Color.Black
-        ),
-        shape = RoundedCornerShape(20.dp),
-        modifier = Modifier.padding(horizontal = 4.dp)
-    ) {
-        Text(text = label)
-    }
+fun FilterButton(
+    label: String,
+    selected: Boolean,
+    onClick: () -> Unit
+) {
+    val colors = StatsTheme.colors
+    Text(
+        text = label,
+        modifier = Modifier
+            .padding(horizontal = 8.dp, vertical = 6.dp)
+            .clickable { onClick() },
+        style = MaterialTheme.typography.labelMedium,
+        color = if (selected) colors.textPrimary else colors.textSecondary
+    )
 }
 
 enum class TimeFilter(val label: String) {
@@ -134,12 +180,12 @@ fun StatsGrid(
     Column(Modifier.padding(16.dp)) {
         Row(
             Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.spacedBy(12.dp)
+            horizontalArrangement = Arrangement.spacedBy(16.dp)
         ) {
             StatCard(title = "Weight", value = weight, icon = weightIcon, modifier = Modifier.weight(1f))
             StatCard(title = "Cost", value = cost, icon = costIcon, modifier = Modifier.weight(1f))
         }
-        Spacer(Modifier.height(12.dp))
+        Spacer(Modifier.height(16.dp))
         Row(
             Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.spacedBy(12.dp)
@@ -150,72 +196,53 @@ fun StatsGrid(
                 icon = chartIcon,
                 modifier = Modifier.weight(1f))
         }
-        Spacer(Modifier.height(12.dp))
+        Spacer(Modifier.height(16.dp))
         PriceDynamicsCard(items = priceDynamics)
     }
 }
 
 @Composable
-fun PriceDynamicsCard(
-    items: List<PriceChangeItem>,
-    modifier: Modifier = Modifier
+fun BaseStatCard(
+    modifier: Modifier = Modifier,
+    onClick: () -> Unit = {},
+    content: @Composable ColumnScope.() -> Unit
 ) {
-    Card(
-        modifier = modifier.fillMaxWidth(),
-        shape = MaterialTheme.shapes.medium,
-        colors = CardDefaults.cardColors(containerColor = Color.White),
-        elevation = CardDefaults.cardElevation(4.dp)
-    ) {
-        Column(modifier = Modifier.padding(12.dp)) {
-            Text(
-                text = "Price Dynamics",
-                style = MaterialTheme.typography.labelMedium,
-                color = Color.Gray
-            )
+    val colors = StatsTheme.colors
+    var isPressed by remember { mutableStateOf(false) }
+    val scale by animateFloatAsState(
+        targetValue = if (isPressed) 0.97f else 1f,
+        label = "PressScale"
+    )
 
-            Spacer(modifier = Modifier.height(8.dp))
-
-            if (items.isEmpty()) {
-                Text("No recent changes", style = MaterialTheme.typography.bodySmall)
-            } else {
-                items.forEach { item ->
-                    Row(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(vertical = 4.dp),
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.SpaceBetween
-                    ) {
-                        Text(
-                            item.dishName,
-                            style = MaterialTheme.typography.bodyMedium,
-                            maxLines = 1,
-                            overflow = TextOverflow.Ellipsis
-                        )
-
-                        Row(verticalAlignment = Alignment.CenterVertically) {
-                            val icon = if (item.isIncreased) Icons.Default.ArrowUpward else Icons.Default.ArrowDownward
-                            val color = if (item.isIncreased) Color.Red else Color(0xFF2E7D32)
-
-                            Icon(
-                                imageVector = icon,
-                                contentDescription = null,
-                                tint = color,
-                                modifier = Modifier.size(16.dp)
-                            )
-
-                            Spacer(modifier = Modifier.width(4.dp))
-
-                            Text(
-                                text = "${item.difference.format(2)} MDL",
-                                style = MaterialTheme.typography.bodySmall,
-                                color = color
-                            )
-                        }
-                    }
-                }
+    Box(
+        modifier = modifier
+            .graphicsLayer {
+                scaleX = scale
+                scaleY = scale
             }
-        }
+            .pointerInput(Unit) {
+                detectTapGestures(
+                    onPress = {
+                        isPressed = true
+                        tryAwaitRelease()
+                        isPressed = false
+                    },
+                    onTap = { onClick() }
+                )
+            }
+            .glassGlowBackground(
+                glowRed = colors.glowRed,
+                glowBlue = colors.glowBlue,
+                backgroundColor = colors.cardBackground
+            )
+            .padding(12.dp)
+    ) {
+        Column(
+            modifier = Modifier
+                .fillMaxSize(),
+            verticalArrangement = Arrangement.SpaceBetween,
+            content = content
+        )
     }
 }
 
@@ -225,44 +252,138 @@ fun StatCard(
     title: String,
     value: String,
     subtitle: String? = null,
-    icon: Painter? = null
+    icon: Painter? = null,
+    onClick: () -> Unit = {}
 ) {
-    Card(
-        modifier = modifier
-            .height(140.dp),
-        shape = RoundedCornerShape(16.dp),
-        colors = CardDefaults.cardColors(containerColor = Color.White),
-        elevation = CardDefaults.cardElevation(4.dp)
-    ) {
-        Column(
-            modifier = Modifier
-                .padding(12.dp)
-                .fillMaxSize(),
-            verticalArrangement = Arrangement.SpaceBetween
-        ) {
-            Row(
-                Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween
-            ) {
-                Text(title, style = MaterialTheme.typography.labelMedium, color = Color.Gray)
-                icon?.let {
-                    Icon(
-                        painter = it,
-                        contentDescription = null,
-                        modifier = Modifier
-                            .size(50.dp)
-                            .padding(end = 4.dp),
-                        tint = Color.Gray
-                    )
-                }
-            }
+    val colors = StatsTheme.colors
 
-            Column {
-                Text(value, style = MaterialTheme.typography.headlineSmall)
-                subtitle?.let {
-                    Text(it, style = MaterialTheme.typography.labelSmall, color = Color.DarkGray)
+    BaseStatCard(
+        modifier = modifier.height(140.dp),
+        onClick = onClick
+    ) {
+        Row(
+            Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceBetween
+        ) {
+            Text(
+                title,
+                style = MaterialTheme.typography.labelMedium,
+                color = colors.textSecondary
+            )
+            icon?.let {
+                Icon(
+                    painter = it,
+                    contentDescription = null,
+                    modifier = Modifier
+                        .size(50.dp)
+                        .padding(end = 4.dp),
+                    tint = colors.textSecondary
+                )
+            }
+        }
+
+        Column {
+            Text(
+                value,
+                style = MaterialTheme.typography.headlineSmall,
+                color = colors.textPrimary
+            )
+            subtitle?.let {
+                Text(
+                    it,
+                    style = MaterialTheme.typography.labelSmall,
+                    color = colors.textSecondary
+                )
+            }
+        }
+    }
+}
+
+@Composable
+fun PriceDynamicsCard(
+    items: List<PriceChangeItem>,
+    modifier: Modifier = Modifier
+) {
+    val colors = StatsTheme.colors
+
+    BaseStatCard(
+        modifier = modifier
+            .fillMaxWidth()
+            .height(100.dp),
+    ) {
+        Text(
+            text = "Price Dynamics",
+            style = MaterialTheme.typography.labelMedium,
+            color = colors.textSecondary
+        )
+
+        Spacer(modifier = Modifier.height(8.dp))
+
+        if (items.isEmpty()) {
+            Text("No recent changes", style = MaterialTheme.typography.bodySmall)
+        } else {
+            items.forEach { item ->
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(vertical = 4.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.SpaceBetween
+                ) {
+                    Text(
+                        item.dishName,
+                        style = MaterialTheme.typography.bodyMedium,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis
+                    )
+
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        val icon = if (item.isIncreased) Icons.Default.ArrowUpward else Icons.Default.ArrowDownward
+                        val color = if (item.isIncreased) Color.Red else Color(0xFF2E7D32)
+
+                        Icon(
+                            imageVector = icon,
+                            contentDescription = null,
+                            tint = color,
+                            modifier = Modifier.size(16.dp)
+                        )
+
+                        Spacer(modifier = Modifier.width(4.dp))
+
+                        Text(
+                            text = "${item.difference.format(2)} MDL",
+                            style = MaterialTheme.typography.bodySmall,
+                            color = color
+                        )
+                    }
                 }
             }
         }
+    }
+}
+
+@Preview(showBackground = true)
+@Composable
+private fun StatsScreenPr() {
+    StatsTheme {
+        StatsScreenContent(
+            state = StatsUiState(
+                summary = StatsSummary(
+                    totalWeight = 3.45,
+                    totalCost = 212.75,
+                    topDish = "Pizza Quattro Formaggi",
+                    topDishCost = 89.99,
+                    priceChanges = 7,
+                    priceUpCount = 4,
+                    priceDownCount = 3
+                ),
+                priceDynamics = listOf(
+                    PriceChangeItem("Pasta", true, 3.0),
+                    PriceChangeItem("Burger", false,1.2)
+                ),
+                selectedFilter = TimeFilter.Week
+            ),
+            onFilterSelected = {} // no-op stub
+        )
     }
 }
