@@ -1,9 +1,7 @@
 package com.example.qrmealtrack.ui.theme
 
-import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.darkColorScheme
-import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.ui.graphics.Color
@@ -59,54 +57,11 @@ private val NeonDarkColorScheme = darkColorScheme(
     surfaceTint = Color.Unspecified
 )
 
-private val NeonLightColorScheme = lightColorScheme(
-    // Для светлой темы – можно немного осветлить, но оставляем ту же палитру
-    primary = NeonStatsColors.glowBlue,
-    onPrimary = Color.Black,
-    primaryContainer = NeonStatsColors.cardBackground,
-    onPrimaryContainer = NeonStatsColors.textPrimary,
-
-    secondary = NeonStatsColors.glowRed,
-    onSecondary = Color.Black,
-    secondaryContainer = NeonStatsColors.cardBackground,
-    onSecondaryContainer = NeonStatsColors.textSecondary,
-
-    tertiary = Color(0xFF00E676),
-    onTertiary = Color.Black,
-    tertiaryContainer = NeonStatsColors.cardBackground,
-    onTertiaryContainer = NeonStatsColors.textPrimary,
-
-    background = NeonStatsColors.background,
-    onBackground = NeonStatsColors.textPrimary,
-
-    surface = NeonStatsColors.cardBackground,
-    onSurface = NeonStatsColors.textPrimary,
-
-    surfaceVariant = NeonStatsColors.cardBackground,
-    onSurfaceVariant = NeonStatsColors.textSecondary,
-
-    error = Color(0xFFB00020),
-    onError = Color.White,
-    errorContainer = Color(0xFFFFDAD6),
-    onErrorContainer = Color.Black,
-
-    outline = NeonStatsColors.textSecondary.copy(alpha = 0.6f),
-    outlineVariant = NeonStatsColors.textSecondary.copy(alpha = 0.3f),
-    scrim = Color.Black.copy(alpha = 0.7f),
-
-    inverseSurface = NeonStatsColors.background,
-    inverseOnSurface = NeonStatsColors.textPrimary,
-    inversePrimary = NeonStatsColors.glowRed,
-
-    surfaceTint = Color.Unspecified
-)
-
 @Composable
 fun QRMealTrackTheme(
-    darkTheme: Boolean = isSystemInDarkTheme(),
     content: @Composable () -> Unit
 ) {
-    val colorScheme = if (darkTheme) NeonDarkColorScheme else NeonLightColorScheme
+    val colorScheme = NeonDarkColorScheme
 
     CompositionLocalProvider(LocalStatsColors provides NeonStatsColors) {
         MaterialTheme(
