@@ -10,7 +10,8 @@ data class ReceiptUiModel(
     val dateTime: Long,
     val date: String,
     val items: List<MealUiModel>,
-    val total:  Double
+    val total:  Double,
+    val isToday: Boolean
 )
 
 @Immutable

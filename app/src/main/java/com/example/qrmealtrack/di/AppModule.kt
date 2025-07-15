@@ -14,6 +14,7 @@ import com.example.qrmealtrack.domain.usecase.GetFilteredStatsUseCase
 import com.example.qrmealtrack.domain.usecase.GetPriceDynamicsUseCase
 import com.example.qrmealtrack.domain.usecase.GetReceiptsGroupedByDayUseCase
 import com.example.qrmealtrack.domain.usecase.SaveParsedReceiptUseCase
+import com.example.qrmealtrack.presentation.utils.DateFormatter
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -64,5 +65,14 @@ object AppModule {
         repository: ReceiptRepository
     ): GetPriceDynamicsUseCase {
         return GetPriceDynamicsUseCase(repository)
+    }
+
+    @Module
+    @InstallIn(SingletonComponent::class)
+    object FormatterModule {
+
+        @Provides
+        @Singleton
+        fun provideDateFormatter(): DateFormatter = DateFormatter()
     }
 }

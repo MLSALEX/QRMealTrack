@@ -4,12 +4,13 @@ import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.qrmealtrack.data.local.ReceiptEntity
-import com.example.qrmealtrack.data.mapper.toUiModel
 import com.example.qrmealtrack.domain.model.Receipt
 import com.example.qrmealtrack.domain.repository.ReceiptRepository
 import com.example.qrmealtrack.domain.usecase.FetchWebPageInfoUseCase
 import com.example.qrmealtrack.domain.usecase.GetReceiptsGroupedByDayUseCase
 import com.example.qrmealtrack.domain.usecase.SaveParsedReceiptUseCase
+import com.example.qrmealtrack.presentation.model.ReceiptUiMapper
+import com.example.qrmealtrack.presentation.utils.DateFormatter
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -24,7 +25,9 @@ class ReceiptListViewModel @Inject constructor(
     private val repository: ReceiptRepository,
     private val fetchWebPageInfoUseCase: FetchWebPageInfoUseCase,
     private val saveParsedReceiptUseCase: SaveParsedReceiptUseCase,
-    private val getReceiptsGroupedByDayUseCase: GetReceiptsGroupedByDayUseCase
+    private val getReceiptsGroupedByDayUseCase: GetReceiptsGroupedByDayUseCase,
+    private val uiMapper: ReceiptUiMapper,
+    private val dateFormatter: DateFormatter
 ) :
     ViewModel() {
     private val _state = MutableStateFlow(ReceiptUiState())
@@ -36,17 +39,19 @@ class ReceiptListViewModel @Inject constructor(
     init {
         viewModelScope.launch {
             getReceiptsGroupedByDayUseCase().collect { result ->
-                Log.d("💡VM", "Всего групп: ${result.receiptsByDay.size}")
-                result.receiptsByDay.forEach { (date, list) ->
-                    Log.d("📅", "$date → ${list.size} чеков")
+
+                val mapped = result.receiptsByDay.mapValues { (_, list) ->
+                    list.map { uiMapper.map(it) }
                 }
-                val uiReceiptsByDay = result.receiptsByDay.mapValues { (_, list) ->
-                    list.map { it.toUiModel() }
-                }
+
+                // 2. Сортировка по убыванию даты (ключ "dd.MM.yyyy")
+                val sortedReceipts = mapped.toSortedMap(compareByDescending { dayStr ->
+                    dateFormatter.parseDay(dayStr)?.time ?: 0L
+                })
 
                 _state.update {
                     it.copy(
-                        receiptsByDay = uiReceiptsByDay,
+                        receiptsByDay = sortedReceipts,
                         totalsByDay = result.totalsByDay,
                         // если хочешь посчитать stats:
                         statistics = calculateStats(result.receiptsByDay.values.flatten())
