@@ -3,12 +3,6 @@ package com.example.qrmealtrack.data.mapper
 import com.example.qrmealtrack.data.local.ReceiptEntity
 import com.example.qrmealtrack.domain.model.Meal
 import com.example.qrmealtrack.domain.model.Receipt
-import com.example.qrmealtrack.presentation.model.MealUiModel
-import com.example.qrmealtrack.presentation.model.ReceiptUiModel
-import java.text.SimpleDateFormat
-import java.util.Date
-import java.util.Locale
-import kotlin.math.roundToInt
 
 // Преобразование Receipt -> List<ReceiptEntity>
 fun Receipt.toEntityList(): List<ReceiptEntity> {
@@ -82,29 +76,3 @@ fun parseQrToReceipt(rawValue: String): ReceiptEntity? {
         null
     }
 }
-
-fun Receipt.toUiModel(): ReceiptUiModel {
-    val formattedDate = SimpleDateFormat("dd.MM.yyyy HH:mm", Locale.getDefault())
-        .format(Date(dateTime))
-
-    return ReceiptUiModel(
-        id = id,
-        fiscalCode = fiscalCode,
-        enterprise = enterprise,
-        dateTime = dateTime,
-        date = formattedDate,
-        total = total.roundTo2Decimals(),
-        items = items.map {
-            return@map MealUiModel(
-                name = it.name,
-                weight = "%.2f".format(it.weight),
-                unitPrice = "%.2f".format(it.unitPrice),
-                price = "%.2f".format(it.price),
-                isWeightBased = it.isWeightBased,
-                category = it.category
-            )
-        }
-    )
-}
-fun Double.roundTo2Decimals(): Double =
-    (this * 100).roundToInt() / 100.0

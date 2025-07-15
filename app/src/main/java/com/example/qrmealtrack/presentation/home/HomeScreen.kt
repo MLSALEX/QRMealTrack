@@ -42,9 +42,6 @@ import com.example.qrmealtrack.presentation.model.ReceiptUiModel
 import com.example.qrmealtrack.presentation.receipt.ReceiptListViewModel
 import com.example.qrmealtrack.presentation.receipt.ReceiptUiAction
 import com.example.qrmealtrack.presentation.receipt.ReceiptUiState
-import java.text.SimpleDateFormat
-import java.util.Date
-import java.util.Locale
 
 @Composable
 fun HomeScreen(
@@ -90,20 +87,22 @@ fun HomeContent(
     onDeleteRequest: (ReceiptUiModel) -> Unit,
     onToggle: (Long) -> Unit
 ) {
-    val receiptsByDay = remember(state.receiptsByDay) {
-        state.receiptsByDay.toSortedMap(compareByDescending { dateStr ->
-            SimpleDateFormat("dd.MM.yyyy", Locale.getDefault()).parse(dateStr)?.time ?: 0L
-        })
-    }
-
     LazyColumn(
         contentPadding = PaddingValues(16.dp),
         verticalArrangement = Arrangement.spacedBy(12.dp)
     ) {
-        receiptsByDay.forEach { (day, receipts) ->
+        state.receiptsByDay.forEach { (day, receipts) ->
+            val totalForDay = receipts.sumOf { it.total }
+            val isTodayHeader = receipts.any { it.isToday }
+
             item(key = "header_$day") {
-                ReceiptHeader(day = day, total = receipts.sumOf { it.total })
+                ReceiptHeader(
+                    day = day,
+                    total = totalForDay,
+                    isToday = isTodayHeader
+                )
             }
+
             items(receipts, key = { it.id }) { receipt ->
                 val isExpanded = state.expandedReceiptIds.contains(receipt.id)
                 Log.d("🔍", "Receipt ID: ${receipt.id} expanded=${isExpanded}")
@@ -119,10 +118,14 @@ fun HomeContent(
 }
 
 @Composable
-fun ReceiptHeader(day: String, total: Double) {
+fun ReceiptHeader(
+    day: String,
+    total: Double,
+    isToday: Boolean
+) {
     Text(
         text = buildString {
-            append(if (isToday(day)) "Today" else day)
+            append(if (isToday) "Today" else day)
             append(" — total: %.2f MDL".format(total))
         },
         style = MaterialTheme.typography.titleLarge,
@@ -153,6 +156,9 @@ fun ReceiptCard(
                     onLongClick()
                 }
             ),
+        colors = CardDefaults.cardColors(
+            containerColor = MaterialTheme.colorScheme.surface
+        ),
         elevation = CardDefaults.cardElevation(4.dp)
     ) {
         Column(
@@ -205,10 +211,4 @@ fun ReceiptCard(
             }
         }
     }
-}
-
-fun isToday(dateStr: String): Boolean {
-    val format = SimpleDateFormat("dd.MM.yyyy", Locale.getDefault())
-    val today = format.format(Date())
-    return dateStr == today
 }
