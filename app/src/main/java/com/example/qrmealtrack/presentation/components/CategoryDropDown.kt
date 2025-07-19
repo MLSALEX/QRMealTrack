@@ -45,9 +45,11 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.ui.res.painterResource
+import com.example.qrmealtrack.domain.model.ReceiptCategory
 
 data class CategoryUi(
     @DrawableRes val resId: Int,
+    val key: String,
     val name: String,
     val isSelected: Boolean = false
 )
@@ -65,6 +67,10 @@ sealed interface FilterType {
 
     fun getSelectedNames(): List<String> = when (this) {
         is Categories -> categories.filter { it.isSelected }.map { it.name }.sorted()
+    }
+
+    fun getSelectedKeys(): List<String> = when (this) {
+        is Categories -> categories.filter { it.isSelected }.map { it.key }
     }
 }
 @Composable
@@ -251,11 +257,11 @@ private fun getTitle(title: String, filterType: FilterType.Categories): String {
 fun getDefaultCategories(): FilterType.Categories {
     return FilterType.Categories(
         setOf(
-            CategoryUi(R.drawable.plate, "Meals", false),
-            CategoryUi(R.drawable.clothing, "Clothing", false),
-            CategoryUi(R.drawable.beauty, "Beauty", false),
-            CategoryUi(R.drawable.transport, "Transport", false),
-            CategoryUi(R.drawable.cart, "Groceries", false)
+            CategoryUi(R.drawable.plate, ReceiptCategory.MEALS.key, "Meals", false),
+            CategoryUi(R.drawable.clothing, ReceiptCategory.CLOTHING.key, "Clothing", false),
+            CategoryUi(R.drawable.beauty, ReceiptCategory.BEAUTY.key, "Beauty", false),
+            CategoryUi(R.drawable.transport, ReceiptCategory.TRANSPORT.key, "Transport", false),
+            CategoryUi(R.drawable.cart, ReceiptCategory.GROCERIES.key, "Groceries", false)
         )
     )
 }

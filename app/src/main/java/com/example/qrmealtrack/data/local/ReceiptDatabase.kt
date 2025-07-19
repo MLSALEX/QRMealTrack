@@ -5,7 +5,7 @@ import androidx.room.RoomDatabase
 
 @Database(
     entities = [ReceiptEntity::class, ReceiptItemEntity::class],
-    version = 8,
+    version = 9,
 //    exportSchema = true
 )
 abstract class ReceiptDatabase : RoomDatabase() {

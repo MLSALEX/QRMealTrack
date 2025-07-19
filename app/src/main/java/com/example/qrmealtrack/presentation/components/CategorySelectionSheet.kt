@@ -12,6 +12,7 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -34,10 +35,11 @@ fun CategorySelectionSheet(
                     .padding(16.dp),
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                Image(
+                Icon(
                     painter = painterResource(category.resId),
                     contentDescription = null,
-                    modifier = Modifier.size(24.dp)
+                    modifier = Modifier.size(24.dp),
+                    tint = MaterialTheme.colorScheme.outline
                 )
                 Spacer(Modifier.width(12.dp))
                 Text(category.name)

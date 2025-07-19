@@ -4,6 +4,7 @@ import androidx.room.Entity
 import androidx.room.ForeignKey
 import androidx.room.Index
 import androidx.room.PrimaryKey
+import com.example.qrmealtrack.domain.model.ReceiptCategory
 
 //@Entity
 //data class ReceiptEntity(
@@ -27,7 +28,7 @@ data class ReceiptEntity(
     val enterprise: String,
     val total: Double,
     val dateTime: Long,
-    val category: String? = null // ✅ категория чека целиком
+    val category: String = ReceiptCategory.NO_CATEGORY.key  // ✅ категория чека целиком
 )
 @Entity(
     tableName = "receipt_item",

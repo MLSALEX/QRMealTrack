@@ -46,4 +46,7 @@ interface ReceiptDao {
     // ✅ Удаление группы по fiscalCode + dateTime
     @Query("DELETE FROM receipt WHERE fiscalCode = :fiscalCode AND dateTime = :dateTime")
     suspend fun deleteReceiptGroup(fiscalCode: String, dateTime: Long)
+
+    @Query("UPDATE receipt SET category = :categoryKey WHERE id = :receiptId")
+    suspend fun updateReceiptCategory(receiptId: Long, categoryKey: String)
 }

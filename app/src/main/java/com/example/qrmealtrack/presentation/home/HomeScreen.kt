@@ -23,12 +23,15 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
+import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.collectAsState
@@ -46,14 +49,20 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.example.qrmealtrack.R
+import com.example.qrmealtrack.domain.model.ReceiptCategory
 import com.example.qrmealtrack.presentation.components.CategoryFilterDropdown
+import com.example.qrmealtrack.presentation.components.CategorySelectionSheet
+import com.example.qrmealtrack.presentation.components.CategoryUi
 import com.example.qrmealtrack.presentation.components.FilterType
 import com.example.qrmealtrack.presentation.components.getDefaultCategories
 import com.example.qrmealtrack.presentation.model.ReceiptUiModel
+import com.example.qrmealtrack.presentation.model.displayName
+import com.example.qrmealtrack.presentation.model.iconRes
 import com.example.qrmealtrack.presentation.receipt.ReceiptListViewModel
 import com.example.qrmealtrack.presentation.receipt.ReceiptUiAction
 import com.example.qrmealtrack.ui.theme.home.receiptCardGlowBackground
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun HomeScreen(
     listViewModel: ReceiptListViewModel = hiltViewModel(),
@@ -61,6 +70,9 @@ fun HomeScreen(
 ) {
     val state by listViewModel.state.collectAsState()
     val filterState by filterViewModel.filterState.collectAsState()
+
+    var receiptForCategory by remember { mutableStateOf<ReceiptUiModel?>(null) }
+    val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
 
     var receiptToDelete by remember { mutableStateOf<ReceiptUiModel?>(null) }
 
@@ -85,25 +97,67 @@ fun HomeScreen(
             }
         )
     }
-    // Фильтруем чеки на основе выбранных категорий
-    val selectedNames = filterState.getSelectedNames()
-    val filteredReceipts = if (selectedNames.isEmpty()) {
+    val selectedKeys = filterState.getSelectedKeys()
+
+    val filteredReceipts = if (selectedKeys.isEmpty()) {
         state.receiptsByDay
     } else {
         state.receiptsByDay.mapValues { (_, receipts) ->
-            receipts.filter { it.items.any { meal -> meal.category in selectedNames } }
+            receipts.filter { receipt ->
+                receipt.category.key in selectedKeys
+            }
         }.filterValues { it.isNotEmpty() }
     }
 
-    HomeContent(
-        receipts = filteredReceipts,
-        expandedIds = state.expandedReceiptIds,
-        filterState = filterState,
-        onFilterChange = { filterViewModel.updateFilter(it) },
-        onClearFilter = { filterViewModel.clearFilter() },
-        onDeleteRequest = { receiptToDelete = it },
-        onToggle = { listViewModel.onAction(ReceiptUiAction.ToggleReceipt(it)) },
-    )
+    Box(modifier = Modifier.fillMaxSize()) {
+        HomeContent(
+            receipts = filteredReceipts,
+            expandedIds = state.expandedReceiptIds,
+            filterState = filterState,
+            onFilterChange = { filterViewModel.updateFilter(it) },
+            onClearFilter = { filterViewModel.clearFilter() },
+            onDeleteRequest = { receiptToDelete = it },
+            onToggle = { listViewModel.onAction(ReceiptUiAction.ToggleReceipt(it)) },
+            onCategoryClick = { clickedReceipt ->
+                receiptForCategory = clickedReceipt // ✅ запоминаем чек
+            }
+        )
+        receiptForCategory?.let { receipt ->
+            ModalBottomSheet(
+                onDismissRequest = { receiptForCategory = null }, // закрыть, если нажали вне листа
+                sheetState = sheetState,
+                containerColor = MaterialTheme.colorScheme.primaryContainer,  // цвет фона шиита
+                contentColor = MaterialTheme.colorScheme.onPrimaryContainer
+            ) {
+                CategorySelectionSheet(
+                    currentCategory = CategoryUi(
+                        key = receipt.category.key,
+                        name = receipt.category.displayName(),
+                        resId = receipt.category.iconRes()
+                    ),
+                    categories = ReceiptCategory.entries.map { category ->
+                        CategoryUi(
+                            key = category.key,
+                            name = category.displayName(),
+                            resId = category.iconRes()
+                        )
+                    },
+                    onSelect = { selectedUi ->
+                        // при выборе сохраняем категорию
+                        listViewModel.onAction(
+                            ReceiptUiAction.ChangeCategory(
+                                receipt.id,
+                                selectedUi
+                            )
+                        )
+                        // и закрываем лист
+                        receiptForCategory = null
+                    }
+                )
+            }
+        }
+    }
+
 }
 
 @Composable
@@ -114,9 +168,9 @@ fun HomeContent(
     onFilterChange: (FilterType.Categories) -> Unit,
     onClearFilter: () -> Unit,
     onDeleteRequest: (ReceiptUiModel) -> Unit,
-    onToggle: (Long) -> Unit
+    onToggle: (Long) -> Unit,
+    onCategoryClick: (ReceiptUiModel) -> Unit
 ) {
-    var selectedCategories by remember { mutableStateOf(getDefaultCategories()) }
     Column(
         modifier = Modifier.fillMaxSize()
     ) {
@@ -130,11 +184,7 @@ fun HomeContent(
                 .padding(horizontal = 16.dp)
         )
 
-
         Spacer(modifier = Modifier.height(12.dp))
-
-        // ✅ получаем выбранные категории
-        val selectedNames = selectedCategories.getSelectedNames()
 
         LazyColumn(
             contentPadding = PaddingValues(16.dp),
@@ -160,9 +210,7 @@ fun HomeContent(
                         isExpanded = isExpanded,
                         onCardToggle = { onToggle(receipt.id) },
                         onLongClick = { onDeleteRequest(receipt) },
-                        onCategoryClick = { clickedReceipt ->
-                            // тут откроешь BottomSheet с выбором категории
-                        }
+                        onCategoryClick = onCategoryClick
                     )
                 }
             }
@@ -226,11 +274,8 @@ fun ReceiptCard(
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     Icon(
-                        painter = painterResource(
-                            id = receipt.category?.resId
-                                ?: R.drawable.no_categ
-                        ),
-                        contentDescription = "Category",
+                        painter = painterResource(receipt.category.iconRes()),
+                        contentDescription = receipt.category.displayName(),
                         modifier = Modifier
                             .size(40.dp)
                             .clip(RoundedCornerShape(12.dp))
@@ -239,10 +284,7 @@ fun ReceiptCard(
                                 onCategoryClick(receipt)
                             }
                             .padding(end = 8.dp),
-                        tint = if (receipt.category == null)
-                            MaterialTheme.colorScheme.outline // серый если нет категории
-                        else
-                            MaterialTheme.colorScheme.primary // акцент если есть категория
+                        tint = MaterialTheme.colorScheme.outline
                     )
                     Text(
                         text = receipt.enterprise,

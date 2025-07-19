@@ -1,7 +1,7 @@
 package com.example.qrmealtrack.presentation.model
 
 import androidx.compose.runtime.Immutable
-import com.example.qrmealtrack.presentation.components.CategoryUi
+import com.example.qrmealtrack.domain.model.ReceiptCategory
 
 @Immutable
 data class ReceiptUiModel(
@@ -13,7 +13,7 @@ data class ReceiptUiModel(
     val items: List<ItemUiModel>,
     val total:  Double,
     val isToday: Boolean,
-    val category: CategoryUi? = null
+    val category: ReceiptCategory
 )
 
 @Immutable
@@ -22,6 +22,6 @@ data class ItemUiModel(
     val weight: String,
     val unitPrice: String,
     val price: String,
-    val category: String? = null,
+    val categoryKey: String,
     val isWeightBased: Boolean = false
 )

@@ -6,6 +6,7 @@ import com.example.qrmealtrack.data.local.ReceiptEntity
 import com.example.qrmealtrack.data.mapper.toDomain
 import com.example.qrmealtrack.data.mapper.toEntity
 import com.example.qrmealtrack.domain.model.Receipt
+import com.example.qrmealtrack.domain.model.ReceiptCategory
 import com.example.qrmealtrack.domain.repository.ReceiptRepository
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
@@ -39,5 +40,9 @@ class ReceiptRepositoryImpl(
 
     override suspend fun deleteReceiptGroup(fiscalCode: String, dateTime: Long) {
         dao.deleteReceiptGroup(fiscalCode, dateTime)
+    }
+
+    override suspend fun updateReceiptCategory(receiptId: Long, category: ReceiptCategory) {
+        dao.updateReceiptCategory(receiptId, category.key)
     }
 }

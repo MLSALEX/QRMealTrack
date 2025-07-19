@@ -4,6 +4,7 @@ import com.example.qrmealtrack.data.local.ReceiptEntity
 import com.example.qrmealtrack.data.local.ReceiptItemEntity
 import com.example.qrmealtrack.data.local.relation.ReceiptWithItems
 import com.example.qrmealtrack.domain.model.Receipt
+import com.example.qrmealtrack.domain.model.ReceiptCategory
 import com.example.qrmealtrack.domain.model.ReceiptItem
 import com.example.qrmealtrack.presentation.utils.ParsedReceipt
 
@@ -15,7 +16,7 @@ fun Receipt.toEntity(): ReceiptEntity {
         enterprise = enterprise,
         total = total,
         dateTime = dateTime,
-        category = category
+        category = category.key
     )
 }
 
@@ -28,7 +29,7 @@ fun ReceiptItem.toEntity(receiptId: Long): ReceiptItemEntity {
         unitPrice = unitPrice,
         price = price,
         isWeightBased = isWeightBased,
-        category = category
+        category = category.key
     )
 }
 fun ReceiptWithItems.toDomain(): Receipt {
@@ -39,7 +40,7 @@ fun ReceiptWithItems.toDomain(): Receipt {
         dateTime = receipt.dateTime,
         type = "", // если нужно — добавь type в ReceiptEntity
         total = receipt.total,
-        category = receipt.category,
+        category = ReceiptCategory.fromKey(receipt.category),
         items = items.map {
             ReceiptItem(
                 name = it.name,
@@ -47,7 +48,7 @@ fun ReceiptWithItems.toDomain(): Receipt {
                 unitPrice = it.unitPrice,
                 price = it.price,
                 isWeightBased = it.isWeightBased,
-                category = it.category
+                category =  ReceiptCategory.fromKey(it.category)
             )
         }
     )
@@ -67,7 +68,7 @@ fun parseQrToReceipt(rawValue: String): Receipt? {
             unitPrice = pricePerUnit,
             price = price,
             isWeightBased = isWeightBased,
-            category = null
+            category = ReceiptCategory.NO_CATEGORY
         )
 
         Receipt(
@@ -77,7 +78,7 @@ fun parseQrToReceipt(rawValue: String): Receipt? {
             dateTime = System.currentTimeMillis(),
             type = parts[5],
             total = price,
-            category = null,
+            category = ReceiptCategory.NO_CATEGORY,
             items = listOf(item)
         )
     } catch (e: Exception) {
@@ -93,7 +94,7 @@ fun ParsedReceipt.toDomain(): Receipt {
         dateTime = dateTime,
         type = "Web",
         total = items.sumOf { it.price },
-        category = null,
+        category = ReceiptCategory.NO_CATEGORY,
         items = items.map {
             ReceiptItem(
                 name = it.name,
@@ -101,7 +102,7 @@ fun ParsedReceipt.toDomain(): Receipt {
                 unitPrice = it.unitPrice,
                 price = it.price,
                 isWeightBased = it.isWeightBased,
-                category = it.category
+                category = ReceiptCategory.fromKey(it.category)
             )
         }
     )
