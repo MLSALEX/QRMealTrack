@@ -5,25 +5,45 @@ import androidx.room.Delete
 import androidx.room.Insert
 import androidx.room.OnConflictStrategy
 import androidx.room.Query
+import androidx.room.Transaction
+import com.example.qrmealtrack.data.local.relation.ReceiptWithItems
 import kotlinx.coroutines.flow.Flow
 
 @Dao
 interface ReceiptDao {
-    @Insert(onConflict = OnConflictStrategy.IGNORE)
+
+    // ✅ Сохраняем сам чек
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertReceipt(receipt: ReceiptEntity): Long
 
-    @Query("SELECT * FROM ReceiptEntity")
-    fun getAllReceipts(): Flow<List<ReceiptEntity>>
+    // ✅ Сохраняем товары
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    suspend fun insertItems(items: List<ReceiptItemEntity>)
 
-    @Query("SELECT * FROM ReceiptEntity WHERE type = :type")
-    fun getReceiptsByType(type: String): Flow<List<ReceiptEntity>>
+    // ✅ Удаляем чек (Room сам удалит товары из-за CASCADE)
+    @Delete
+    suspend fun deleteReceipt(receipt: ReceiptEntity)
 
-    @Query("SELECT COUNT(*) FROM ReceiptEntity WHERE fiscalCode = :fiscalCode AND dateTime = :dateTime")
+    // ✅ Получаем ВСЕ чеки с товарами
+    @Transaction
+    @Query("SELECT * FROM receipt ORDER BY dateTime DESC")
+    fun getAllReceiptsWithItems(): Flow<List<ReceiptWithItems>>
+
+    // ✅ Получаем конкретный чек с товарами
+    @Transaction
+    @Query("SELECT * FROM receipt WHERE id = :receiptId")
+    suspend fun getReceiptWithItems(receiptId: Long): ReceiptWithItems?
+
+    // ✅ Поиск по fiscalCode + dateTime (для проверки дублей)
+    @Transaction
+    @Query("SELECT * FROM receipt WHERE fiscalCode = :fiscalCode AND dateTime = :dateTime")
+    suspend fun getReceiptGroup(fiscalCode: String, dateTime: Long): List<ReceiptWithItems>
+
+    // ✅ Счётчик дублей
+    @Query("SELECT COUNT(*) FROM receipt WHERE fiscalCode = :fiscalCode AND dateTime = :dateTime")
     suspend fun countReceiptsForCheck(fiscalCode: String, dateTime: Long): Int
 
-    @Query("SELECT * FROM ReceiptEntity WHERE fiscalCode = :fiscalCode AND dateTime = :dateTime")
-    suspend fun getReceiptsByFiscalCodeAndDate(fiscalCode: String, dateTime: Long): List<ReceiptEntity>
-
-    @Query("DELETE FROM ReceiptEntity WHERE fiscalCode = :fiscalCode AND dateTime = :dateTime")
+    // ✅ Удаление группы по fiscalCode + dateTime
+    @Query("DELETE FROM receipt WHERE fiscalCode = :fiscalCode AND dateTime = :dateTime")
     suspend fun deleteReceiptGroup(fiscalCode: String, dateTime: Long)
 }

@@ -28,7 +28,7 @@ object AppModule {
     @Singleton
     fun provideDatabase(app: Application): ReceiptDatabase =
         Room.databaseBuilder(app, ReceiptDatabase::class.java, "receipts_db")
-            .fallbackToDestructiveMigration()
+            .fallbackToDestructiveMigration(false)
             .build()
 
     @Provides

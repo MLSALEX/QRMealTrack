@@ -49,7 +49,7 @@ import androidx.compose.ui.res.painterResource
 data class CategoryUi(
     @DrawableRes val resId: Int,
     val name: String,
-    val isSelected: Boolean
+    val isSelected: Boolean = false
 )
 
 sealed interface FilterType {
@@ -190,7 +190,7 @@ private fun FilterTitle(
             text = getTitle(title, filterType),
             modifier = Modifier.padding(end = paddingEnd),
             style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.Medium),
-            color = MaterialTheme.colorScheme.secondary
+            color = MaterialTheme.colorScheme.primary
         )
         if (filterType.getSelectedCount() > 0) {
             Box(

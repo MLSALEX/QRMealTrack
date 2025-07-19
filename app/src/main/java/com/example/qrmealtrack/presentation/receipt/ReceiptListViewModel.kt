@@ -95,6 +95,8 @@ class ReceiptListViewModel @Inject constructor(
                     _state.update { it.copy(webPageInfo = result) }
                 }
             }
+
+            is ReceiptUiAction.ChangeCategory -> TODO()
         }
     }
 
@@ -109,7 +111,7 @@ class ReceiptListViewModel @Inject constructor(
         return Statistics(minPrice, maxPrice, avgPrice /* avgPerDay, avgPerWeek, avgPerMonth */)
     }
 
-    fun addReceipt(receipt: ReceiptEntity) {
+    fun addReceipt(receipt: Receipt) {
         viewModelScope.launch {
             repository.insertReceipt(receipt)
         }

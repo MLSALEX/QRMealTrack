@@ -77,7 +77,9 @@ fun ReceiptFromWebScreen(
                                     withContext(Dispatchers.Main) {
                                         if (parsed != null) {
                                             viewModel.onAction(ReceiptUiAction.SaveParsed(parsed))
-                                            Toast.makeText(context, "Сохранено ${parsed.items.size} блюд, всего: ${parsed.total} MDL", Toast.LENGTH_SHORT).show()
+                                            Toast.makeText(context, "Сохранено ${parsed.items.size} блюд, "
+//                                                    "всего: ${parsed.total} MDL"
+                                                , Toast.LENGTH_SHORT).show()
                                             onDone()
                                         } else {
                                             Toast.makeText(context, "Не удалось распознать чек", Toast.LENGTH_LONG).show()
