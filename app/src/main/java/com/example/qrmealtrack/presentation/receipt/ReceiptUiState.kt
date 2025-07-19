@@ -1,6 +1,8 @@
 package com.example.qrmealtrack.presentation.receipt
 
 import androidx.compose.runtime.Immutable
+import com.example.qrmealtrack.presentation.components.FilterType
+import com.example.qrmealtrack.presentation.components.getDefaultCategories
 import com.example.qrmealtrack.presentation.model.ReceiptUiModel
 
 @Immutable
@@ -10,6 +12,7 @@ data class ReceiptUiState(
     val receiptsByDay: Map<String, List<ReceiptUiModel>> = emptyMap(),
     val totalsByDay: Map<String, Double> = emptyMap(),
     val expandedReceiptIds: Set<Long> = emptySet(),
+    val selectedCategories: FilterType.Categories = getDefaultCategories()
 )
 
 data class Statistics(

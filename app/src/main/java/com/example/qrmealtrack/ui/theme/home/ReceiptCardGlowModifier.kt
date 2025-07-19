@@ -80,9 +80,11 @@ fun Modifier.receiptCardGlowBackground(
     .background(
         brush = Brush.verticalGradient(
             colors = listOf(
-                Color.White.copy(alpha = 0.05f), // светлый блик сверху
+                Color(0xFF00FFB0).copy(alpha = 0.05f), // светлый блик сверху
                 Color.Transparent                // уходит в прозрачность
-            )
+            ),
+            startY = 0f,
+            endY = 50f
         ),
         shape = RoundedCornerShape(cornerRadius)
     )
