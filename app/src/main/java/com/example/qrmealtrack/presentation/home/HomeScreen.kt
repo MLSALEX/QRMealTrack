@@ -5,7 +5,6 @@ import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.animateContentSize
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.foundation.ExperimentalFoundationApi
-import androidx.compose.foundation.background
 import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -13,6 +12,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
@@ -44,19 +44,23 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.example.qrmealtrack.R
+import com.example.qrmealtrack.presentation.components.CategoryFilterDropdown
+import com.example.qrmealtrack.presentation.components.FilterType
+import com.example.qrmealtrack.presentation.components.getDefaultCategories
 import com.example.qrmealtrack.presentation.model.MealUiModel
 import com.example.qrmealtrack.presentation.model.ReceiptUiModel
 import com.example.qrmealtrack.presentation.receipt.ReceiptListViewModel
 import com.example.qrmealtrack.presentation.receipt.ReceiptUiAction
-import com.example.qrmealtrack.presentation.receipt.ReceiptUiState
 import com.example.qrmealtrack.ui.theme.QRMealTrackTheme
 import com.example.qrmealtrack.ui.theme.home.receiptCardGlowBackground
 
 @Composable
 fun HomeScreen(
-    viewModel: ReceiptListViewModel = hiltViewModel()
+    listViewModel: ReceiptListViewModel = hiltViewModel(),
+    filterViewModel: HomeFilterViewModel = hiltViewModel()
 ) {
-    val state by viewModel.state.collectAsState()
+    val state by listViewModel.state.collectAsState()
+    val filterState by filterViewModel.filterState.collectAsState()
 
     var receiptToDelete by remember { mutableStateOf<ReceiptUiModel?>(null) }
 
@@ -68,7 +72,7 @@ fun HomeScreen(
             text = { Text(stringResource(R.string.are_you_sure)) },
             confirmButton = {
                 TextButton(onClick = {
-                    viewModel.onAction(ReceiptUiAction.DeleteReceipt(receipt))
+                    listViewModel.onAction(ReceiptUiAction.DeleteReceipt(receipt))
                     receiptToDelete = null
                 }) {
                     Text(stringResource(android.R.string.ok))
@@ -81,46 +85,83 @@ fun HomeScreen(
             }
         )
     }
+    // Фильтруем чеки на основе выбранных категорий
+    val selectedNames = filterState.getSelectedNames()
+    val filteredReceipts = if (selectedNames.isEmpty()) {
+        state.receiptsByDay
+    } else {
+        state.receiptsByDay.mapValues { (_, receipts) ->
+            receipts.filter { it.items.any { meal -> meal.category in selectedNames } }
+        }.filterValues { it.isNotEmpty() }
+    }
 
-    // Содержимое
     HomeContent(
-        state = state,
+        receipts = filteredReceipts,
+        expandedIds = state.expandedReceiptIds,
+        filterState = filterState,
+        onFilterChange = { filterViewModel.updateFilter(it) },
+        onClearFilter = { filterViewModel.clearFilter() },
         onDeleteRequest = { receiptToDelete = it },
-        onToggle = { viewModel.onAction(ReceiptUiAction.ToggleReceipt(it)) }
+        onToggle = { listViewModel.onAction(ReceiptUiAction.ToggleReceipt(it)) }
     )
 }
 
 @Composable
 fun HomeContent(
-    state: ReceiptUiState,
+    receipts: Map<String, List<ReceiptUiModel>>,
+    expandedIds: Set<Long>,
+    filterState: FilterType.Categories,
+    onFilterChange: (FilterType.Categories) -> Unit,
+    onClearFilter: () -> Unit,
     onDeleteRequest: (ReceiptUiModel) -> Unit,
     onToggle: (Long) -> Unit
 ) {
-    LazyColumn(
-        contentPadding = PaddingValues(16.dp),
-        verticalArrangement = Arrangement.spacedBy(12.dp)
+    var selectedCategories by remember { mutableStateOf(getDefaultCategories()) }
+    Column(
+        modifier = Modifier.fillMaxSize()
     ) {
-        state.receiptsByDay.forEach { (day, receipts) ->
-            val totalForDay = receipts.sumOf { it.total }
-            val isTodayHeader = receipts.any { it.isToday }
+        CategoryFilterDropdown(
+            title = "All Categories",
+            filterType = filterState,
+            onToggle = onFilterChange,
+            onClearFilter = onClearFilter,
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 16.dp)
+        )
 
-            item(key = "header_$day") {
-                ReceiptHeader(
-                    day = day,
-                    total = totalForDay,
-                    isToday = isTodayHeader
-                )
-            }
 
-            items(receipts, key = { it.id }) { receipt ->
-                val isExpanded = state.expandedReceiptIds.contains(receipt.id)
-                Log.d("🔍", "Receipt ID: ${receipt.id} expanded=${isExpanded}")
-               ReceiptCard(
-                    receipt = receipt,
-                    isExpanded = isExpanded,
-                    onCardToggle = { onToggle(receipt.id) },
-                    onLongClick = { onDeleteRequest(receipt) }
-                )
+        Spacer(modifier = Modifier.height(12.dp))
+
+        // ✅ получаем выбранные категории
+        val selectedNames = selectedCategories.getSelectedNames()
+
+        LazyColumn(
+            contentPadding = PaddingValues(16.dp),
+            verticalArrangement = Arrangement.spacedBy(12.dp)
+        ) {
+            receipts.forEach { (day, receipts) ->
+                val totalForDay = receipts.sumOf { it.total }
+                val isTodayHeader = receipts.any { it.isToday }
+
+                item(key = "header_$day") {
+                    ReceiptHeader(
+                        day = day,
+                        total = totalForDay,
+                        isToday = isTodayHeader
+                    )
+                }
+
+                items(receipts, key = { it.id }) { receipt ->
+                    val isExpanded = expandedIds.contains(receipt.id)
+                    Log.d("🔍", "Receipt ID: ${receipt.id} expanded=${isExpanded}")
+                    ReceiptCard(
+                        receipt = receipt,
+                        isExpanded = isExpanded,
+                        onCardToggle = { onToggle(receipt.id) },
+                        onLongClick = { onDeleteRequest(receipt) }
+                    )
+                }
             }
         }
     }
