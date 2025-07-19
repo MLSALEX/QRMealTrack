@@ -9,9 +9,19 @@ import java.util.Locale
 import kotlin.math.roundToInt
 
 data class ParsedReceipt(
-    val items: List<ReceiptEntity>,
+    val fiscalCode: String,
+    val enterprise: String,
     val dateTime: Long,
-    val total: Double
+    val items: List<ParsedItem>
+)
+
+data class ParsedItem(
+    val name: String,
+    val weight: Double,
+    val unitPrice: Double,
+    val price: Double,
+    val isWeightBased: Boolean,
+    val category: String? = null
 )
 object ReceiptRegex {
     val item = Regex("""(.*)\s([0-9.,]+)\s*[x×]\s*([0-9.,]+)""")
@@ -28,9 +38,7 @@ suspend fun parseTextToReceipts(text: String): ParsedReceipt? = withContext(Disp
         .filter { it.isNotBlank() }
 
     if (lines.isEmpty()) return@withContext null
-
-    val receipts = mutableListOf<ReceiptEntity>()
-    var total = 0.0
+    val parsedItems = mutableListOf<ParsedItem>()
 
     // COD FISCAL
     val fiscalCodeLine = lines.find { it.contains("COD FISCAL", ignoreCase = true) }
@@ -80,17 +88,15 @@ suspend fun parseTextToReceipts(text: String): ParsedReceipt? = withContext(Disp
 
             val isWeightBased = itemName.contains("kg", ignoreCase = true) || weight in 0.01..10.0
 
-            receipts += ReceiptEntity(
-                fiscalCode = fiscalCode,
-                enterprise = enterprise,
-                itemName = itemName,
+            parsedItems += ParsedItem(
+                name = itemName,
                 weight = weight,
+                unitPrice = unitPrice,
                 price = price,
-                dateTime = finalDateTime,
-                type = "Web",
                 isWeightBased = isWeightBased,
                 category = autoCategory
             )
+
 
             i += 2
             continue
@@ -113,14 +119,11 @@ suspend fun parseTextToReceipts(text: String): ParsedReceipt? = withContext(Disp
 
             val isWeightBased = itemName.contains("kg", ignoreCase = true) || weight in 0.01..10.0
 
-            receipts += ReceiptEntity(
-                fiscalCode = fiscalCode,
-                enterprise = enterprise,
-                itemName = itemName,
+            parsedItems += ParsedItem(
+                name = itemName,
                 weight = weight,
+                unitPrice = unitPrice,
                 price = price,
-                dateTime = finalDateTime,
-                type = "Web",
                 isWeightBased = isWeightBased,
                 category = autoCategory
             )
@@ -133,19 +136,14 @@ suspend fun parseTextToReceipts(text: String): ParsedReceipt? = withContext(Disp
     }
 
     // TOTAL
-    val totalLineIndex = lines.indexOfFirst { it.contains("TOTAL", ignoreCase = true) }
-    total = if (totalLineIndex != -1) {
-        lines.getOrNull(totalLineIndex + 1)?.replace(",", ".")?.toDoubleOrNull()
-            ?: receipts.sumOf { it.price }
-    } else {
-        receipts.sumOf { it.price }
-    }
+    val total = parsedItems.sumOf { it.price }
 
-    return@withContext if (receipts.isNotEmpty()) {
+    return@withContext if (parsedItems.isNotEmpty()) {
         ParsedReceipt(
-            items = receipts,
+            fiscalCode = fiscalCode,
+            enterprise = enterprise,
             dateTime = finalDateTime,
-            total = total
+            items = parsedItems
         )
     } else null
 }

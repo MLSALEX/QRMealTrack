@@ -5,6 +5,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.qrmealtrack.data.local.ReceiptEntity
 import com.example.qrmealtrack.domain.model.Receipt
+import com.example.qrmealtrack.domain.model.ReceiptCategory
 import com.example.qrmealtrack.domain.repository.ReceiptRepository
 import com.example.qrmealtrack.domain.usecase.FetchWebPageInfoUseCase
 import com.example.qrmealtrack.domain.usecase.GetReceiptsGroupedByDayUseCase
@@ -95,6 +96,16 @@ class ReceiptListViewModel @Inject constructor(
                     _state.update { it.copy(webPageInfo = result) }
                 }
             }
+
+            is ReceiptUiAction.ChangeCategory -> {
+                viewModelScope.launch {
+                    val enumCategory = ReceiptCategory.fromKey(action.newCategory.name.uppercase())
+                    repository.updateReceiptCategory(
+                        receiptId = action.receiptId,
+                        category = enumCategory
+                    )
+                }
+            }
         }
     }
 
@@ -109,7 +120,7 @@ class ReceiptListViewModel @Inject constructor(
         return Statistics(minPrice, maxPrice, avgPrice /* avgPerDay, avgPerWeek, avgPerMonth */)
     }
 
-    fun addReceipt(receipt: ReceiptEntity) {
+    fun addReceipt(receipt: Receipt) {
         viewModelScope.launch {
             repository.insertReceipt(receipt)
         }

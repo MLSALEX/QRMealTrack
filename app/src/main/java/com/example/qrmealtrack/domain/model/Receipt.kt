@@ -6,15 +6,16 @@ data class Receipt(
     val enterprise: String,
     val dateTime: Long,
     val type: String,
-    val items: List<Meal>,
-    val total: Double
+    val items: List<ReceiptItem>,
+    val total: Double,
+    val category: ReceiptCategory,          // ✅ категория чека
 )
 
-data class Meal(
+data class ReceiptItem(
     val name: String,
     val weight: Double,
     val unitPrice: Double,
     val price: Double,
     val isWeightBased: Boolean = false,
-    val category: String? = null
+    val category: ReceiptCategory = ReceiptCategory.NO_CATEGORY
 )
