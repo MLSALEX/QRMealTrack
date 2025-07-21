@@ -109,6 +109,9 @@ fun ScanScreen(
         },
         modifier = Modifier.fillMaxSize()
     )
+
+    SciFiQrScreen()
+
     // ✅ Показываем ссылку и извлечённую информацию
     scannedText?.let { text ->
         if (Patterns.WEB_URL.matcher(text).matches()) {
@@ -120,7 +123,7 @@ fun ScanScreen(
                 append(text)
                 addStyle(
                     style = SpanStyle(
-                        color = Color.Blue,
+                        color = Color(0xFF00CFFF),
                         textDecoration = TextDecoration.Underline
                     ),
                     start = start,
@@ -142,7 +145,7 @@ fun ScanScreen(
                 Text(
                     text = annotatedLink,
                     style = TextStyle(
-                        color = Color.Blue,
+                        color = Color(0xFF00CFFF),
                         textDecoration = TextDecoration.Underline
                     ),
                     modifier = Modifier.clickable {
