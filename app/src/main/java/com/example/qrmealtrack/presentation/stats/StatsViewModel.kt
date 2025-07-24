@@ -7,11 +7,17 @@ import com.example.qrmealtrack.domain.repository.ReceiptRepository
 import com.example.qrmealtrack.domain.usecase.GetCategoryStatsUseCase
 import com.example.qrmealtrack.domain.usecase.GetPriceDynamicsUseCase
 import com.example.qrmealtrack.domain.usecase.GetStatisticsUseCase
+import com.example.qrmealtrack.presentation.stats.colors_provider.defaultCategoryColors
+import com.example.qrmealtrack.presentation.stats.components.LabelMode
+import com.example.qrmealtrack.presentation.stats.model.CategoryUiModel
+import com.example.qrmealtrack.presentation.stats.model.toUiModels
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.catch
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.map
@@ -30,29 +36,13 @@ class StatsViewModel @Inject constructor(
     private val _uiState = MutableStateFlow(StatsUiState())
     val uiState: StateFlow<StatsUiState> = _uiState.asStateFlow()
 
+    private val _labelMode = MutableStateFlow(LabelMode.PERCENT)
+    val labelMode: StateFlow<LabelMode> = _labelMode.asStateFlow()
+
     init {
         observeSummary()
         observePriceChanges()
         observeCategoryStats()
-
-        debugRawReceipts()
-    }
-
-    private fun debugRawReceipts() {
-        viewModelScope.launch {
-            repository.getAllReceipts().collect { receipts ->
-                Log.d("DEBUG_RAW", "=== RECEIPTS COUNT=${receipts.size} ===")
-                receipts.forEach { receipt ->
-                    Log.d("DEBUG_RAW", "Receipt id=${receipt.id} category=${receipt.category.key} total=${receipt.total}")
-                    receipt.items.forEach { item ->
-                        Log.d(
-                            "DEBUG_RAW",
-                            "  ITEM name=${item.name} category=${item.category?.key ?: "null"} price=${item.price}"
-                        )
-                    }
-                }
-            }
-        }
     }
 
     @OptIn(ExperimentalCoroutinesApi::class)
@@ -75,22 +65,42 @@ class StatsViewModel @Inject constructor(
             }
         }
     }
+
     @OptIn(ExperimentalCoroutinesApi::class)
     private fun observeCategoryStats() {
         viewModelScope.launch {
-            _uiState
-                .map { it.selectedFilter }
-                .distinctUntilChanged()
-                .flatMapLatest { filter -> getCategoryStatsUseCase(filter) }
-                .collect { stats ->
-
-                    Log.d("DEBUG_STATS", "Category stats count = ${stats.size}")
-                    stats.forEach {
-                        Log.d("DEBUG_STATS", "Category=${it.category}, total=${it.total}")
-                    }
-
-                    _uiState.update { it.copy(categoryStats = stats) }
+            combine(
+                _uiState.map { it.selectedFilter }
+                    .distinctUntilChanged()
+                    .flatMapLatest { getCategoryStatsUseCase(it) },
+                _labelMode
+            ) { stats, mode ->
+                val colors = defaultCategoryColors()
+                stats.toUiModels(colors, mode)
+            }
+                .distinctUntilChanged() // если результат не изменился – не обновляем UI
+                .catch { e ->
+                    Log.e("observeCategoryStats", "Failed to load stats", e)
+                    emit(emptyList<CategoryUiModel>() to 0)
                 }
+                .collect { ( uiModels, total) ->
+                _uiState.update {
+                    it.copy(
+                        categoryUiModels = uiModels,
+                        totalCategoryValue = total
+                    )
+                }
+            }
+        }
+    }
+
+    fun toggleLabelMode() {
+        _labelMode.update {
+            when (it) {
+                LabelMode.PERCENT -> LabelMode.NAME
+                LabelMode.NAME -> LabelMode.BOTH
+                LabelMode.BOTH -> LabelMode.PERCENT
+            }
         }
     }
 

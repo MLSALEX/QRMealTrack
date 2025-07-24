@@ -28,7 +28,8 @@ enum class LabelMode {
 fun LabelModeButton(
     currentMode: LabelMode,
     onModeChange: () -> Unit,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    backgroundColor: Color = MaterialTheme.colorScheme.surfaceVariant,
 ) {
     // текст для текущего режима
     val modeText = when (currentMode) {
@@ -41,7 +42,7 @@ fun LabelModeButton(
         modifier = modifier
             .size(80.dp)
             .clip(CircleShape)
-            .background(Color.LightGray, shape = CircleShape)
+            .background(backgroundColor, shape = CircleShape)
             .clickable { onModeChange() },
         contentAlignment = Alignment.Center
     ) {

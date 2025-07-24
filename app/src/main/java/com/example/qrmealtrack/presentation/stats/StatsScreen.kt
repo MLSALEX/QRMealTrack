@@ -47,8 +47,10 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import com.example.qrmealtrack.R
 import com.example.qrmealtrack.domain.model.PriceChangeItem
 import com.example.qrmealtrack.domain.usecase.StatsSummary
+import com.example.qrmealtrack.presentation.stats.colors_provider.defaultCategoryColors
 import com.example.qrmealtrack.presentation.stats.components.DonutChartWithCenterButton
-import com.example.qrmealtrack.presentation.stats.components.rememberCategoryColors
+import com.example.qrmealtrack.presentation.stats.components.LabelMode
+import com.example.qrmealtrack.presentation.stats.model.CategoryUiModel
 import com.example.qrmealtrack.presentation.stats.model.format
 import com.example.qrmealtrack.ui.theme.stats.StatsTheme
 import com.example.qrmealtrack.ui.theme.stats.glassGlowBackground
@@ -56,9 +58,12 @@ import com.example.qrmealtrack.ui.theme.stats.glassGlowBackground
 @Composable
 fun StatsScreen(viewModel: StatsViewModel = hiltViewModel()) {
     val state by viewModel.uiState.collectAsState()
+    val labelMode by viewModel.labelMode.collectAsState()
 
     StatsScreenContent(
         state = state,
+        labelMode = labelMode,
+        onModeChange = viewModel::toggleLabelMode,
         onFilterSelected = remember { viewModel::onFilterSelected }
     )
 }
@@ -66,6 +71,8 @@ fun StatsScreen(viewModel: StatsViewModel = hiltViewModel()) {
 @Composable
 fun StatsScreenContent(
     state: StatsUiState,
+    labelMode: LabelMode,
+    onModeChange: () -> Unit,
     onFilterSelected: (TimeFilter) -> Unit
 ) {
     val model = state.uiModel
@@ -73,7 +80,6 @@ fun StatsScreenContent(
 
     val chartPadding = 16.dp
     val chartSize = 200.dp
-    val chartStrokeWidth = 200f
     val chartSpacer = 24.dp
 
     StatsTheme {
@@ -103,9 +109,7 @@ fun StatsScreenContent(
                 }
 
                 item {
-                    if (state.categoryStats.isNotEmpty()) {
-                        val categoryColors = rememberCategoryColors()
-
+                    if (state.categoryUiModels.isNotEmpty()) {
                         Box(
                             modifier = Modifier
                                 .fillMaxWidth()
@@ -113,12 +117,12 @@ fun StatsScreenContent(
                             contentAlignment = Alignment.Center
                         ) {
                             DonutChartWithCenterButton(
-                                stats = state.categoryStats,
-                                colors = categoryColors,
+                                categories = state.categoryUiModels,
+                                labelMode = labelMode,
+                                onModeChange = onModeChange,
                                 modifier = Modifier
                                     .padding(chartPadding)
-                                    .size(chartSize),
-                                strokeWidth = chartStrokeWidth // остаётся квадратом
+                                    .size(chartSize)
                             )
                         }
                     } else {
@@ -160,7 +164,7 @@ fun TimeFilterRow(
         horizontalArrangement = Arrangement.SpaceBetween,
         verticalAlignment = Alignment.CenterVertically
     ) {
-        TimeFilter.values().forEach { filter ->
+        TimeFilter.entries.forEach { filter ->
             FilterButton(
                 label = filter.label,
                 selected = selected == filter,
@@ -202,6 +206,7 @@ enum class TimeFilter(val label: String) {
     Month("Month"),
     All("All Time")
 }
+
 @Composable
 fun StatsGrid(
     weight: String,
@@ -222,7 +227,12 @@ fun StatsGrid(
             Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.spacedBy(16.dp)
         ) {
-            StatCard(title = "Weight", value = weight, icon = weightIcon, modifier = Modifier.weight(1f))
+            StatCard(
+                title = "Weight",
+                value = weight,
+                icon = weightIcon,
+                modifier = Modifier.weight(1f)
+            )
             StatCard(title = "Cost", value = cost, icon = costIcon, modifier = Modifier.weight(1f))
         }
         Spacer(Modifier.height(16.dp))
@@ -230,11 +240,19 @@ fun StatsGrid(
             Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.spacedBy(12.dp)
         ) {
-            StatCard(title = "Top Dish", value = topDish, subtitle = topDishCost, icon = dishIcon,modifier = Modifier.weight(1f))
-            StatCard(title = "Price Changes",
+            StatCard(
+                title = "Top Dish",
+                value = topDish,
+                subtitle = topDishCost,
+                icon = dishIcon,
+                modifier = Modifier.weight(1f)
+            )
+            StatCard(
+                title = "Price Changes",
                 value = "$priceChanges\n↑ $priceUpCount ↓ $priceDownCount",
                 icon = chartIcon,
-                modifier = Modifier.weight(1f))
+                modifier = Modifier.weight(1f)
+            )
         }
         Spacer(Modifier.height(16.dp))
 //        PriceDynamicsCard(items = priceDynamics)
@@ -378,7 +396,8 @@ fun PriceDynamicsCard(
                     )
 
                     Row(verticalAlignment = Alignment.CenterVertically) {
-                        val icon = if (item.isIncreased) Icons.Default.ArrowUpward else Icons.Default.ArrowDownward
+                        val icon =
+                            if (item.isIncreased) Icons.Default.ArrowUpward else Icons.Default.ArrowDownward
                         val color = if (item.isIncreased) Color.Red else Color(0xFF2E7D32)
 
                         Icon(
@@ -419,11 +438,38 @@ private fun StatsScreenPr() {
                 ),
                 priceDynamics = listOf(
                     PriceChangeItem("Pasta", true, 3.0),
-                    PriceChangeItem("Burger", false,1.2)
+                    PriceChangeItem("Burger", false, 1.2)
                 ),
-                selectedFilter = TimeFilter.Week
+                selectedFilter = TimeFilter.Week,
+                // ✅ подставим примерные категории для превью
+                categoryUiModels = listOf(
+                    CategoryUiModel(
+                        categoryName = "MEALS",
+                        percent = 50,
+                        labelText = "50% MEALS",
+                        color = defaultCategoryColors()[1],
+                        value = 100
+                    ),
+                    CategoryUiModel(
+                        categoryName = "CLOTHING",
+                        percent = 30,
+                        labelText = "30% CLOTHING",
+                        color = defaultCategoryColors()[2],
+                        value = 60
+                    ),
+                    CategoryUiModel(
+                        categoryName = "BEAUTY",
+                        percent = 20,
+                        labelText = "20% BEAUTY",
+                        color = defaultCategoryColors()[3],
+                        value = 40
+                    )
+                ),
+                totalCategoryValue = 200
             ),
-            onFilterSelected = {} // no-op stub
+            labelMode = LabelMode.BOTH,
+            onModeChange = {},
+            onFilterSelected = {}
         )
     }
 }
