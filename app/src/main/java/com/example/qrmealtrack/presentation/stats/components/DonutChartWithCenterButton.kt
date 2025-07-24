@@ -1,7 +1,11 @@
 package com.example.qrmealtrack.presentation.stats.components
 
+import androidx.compose.ui.graphics.Color
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.mutableStateOf
@@ -16,10 +20,11 @@ import androidx.compose.ui.unit.dp
 @Composable
 fun DonutChartWithCenterButton(
     stats: List<CategoryStat>,
+    colors: List<Color>,
+    strokeWidth: Float,
     modifier: Modifier = Modifier
 ) {
     var labelMode by remember { mutableStateOf(LabelMode.PERCENT) }
-    val colors = rememberCategoryColors()
 
     // лямбда для смены режима – запоминаем, чтобы не пересоздавалась
     val onModeChange = remember {
@@ -39,9 +44,8 @@ fun DonutChartWithCenterButton(
         DonutChart(
             stats = stats,
             colors = colors,
-            strokeWidth = 350f,
             labelMode = labelMode,
-            modifier = Modifier.size(250.dp)
+            modifier = Modifier.fillMaxSize()
         )
 
         LabelModeButton(
@@ -64,9 +68,14 @@ fun DonutChartWithButtonPreview() {
             CategoryStat("GROCERIES", 250.0)
         )
     }
+    val categoryColors = rememberCategoryColors()
+    Box (modifier = Modifier.fillMaxWidth()){
+        DonutChartWithCenterButton(
+            stats = mockStats,
+            colors = categoryColors,
+            strokeWidth = 250f,
+            modifier = Modifier.padding(116.dp)
+        )
+    }
 
-    DonutChartWithCenterButton(
-        stats = mockStats,
-        modifier = Modifier.fillMaxSize()
-    )
 }

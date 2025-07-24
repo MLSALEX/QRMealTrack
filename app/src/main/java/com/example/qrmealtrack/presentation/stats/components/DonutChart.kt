@@ -16,12 +16,13 @@ import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.nativeCanvas
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import kotlin.math.cos
+import kotlin.math.sin
 
 @Composable
 fun DonutChart(
     stats: List<CategoryStat>,
     colors: List<Color>,
-    strokeWidth: Float,
     labelMode: LabelMode,
     modifier: Modifier = Modifier
 ) {
@@ -34,6 +35,7 @@ fun DonutChart(
         val mode = currentMode.value
         var startAngle = -90f
         val radius = size.minDimension / 2
+        val dynamicStroke = size.minDimension * 0.5f
 
         safeStats.forEachIndexed { index, stat ->
             val sweepAngle = (stat.total / total * 360f).toFloat()
@@ -42,12 +44,15 @@ fun DonutChart(
                 startAngle = startAngle,
                 sweepAngle = sweepAngle,
                 useCenter = false,
-                style = Stroke(width = strokeWidth)
+                style = Stroke(width = dynamicStroke)
             )
             // вычисляем позицию текста на середине дуги
+            val middleAngle = startAngle + sweepAngle / 2
             val angleInRad = Math.toRadians((startAngle + sweepAngle / 2).toDouble())
-            val textX = center.x + (radius / 1.3f) * kotlin.math.cos(angleInRad).toFloat()
-            val textY = center.y + (radius / 1.3f) * kotlin.math.sin(angleInRad).toFloat()
+
+            val textRadius = radius - dynamicStroke * 0.01f
+            val textX = center.x + textRadius * cos(angleInRad).toFloat()
+            val textY = center.y + textRadius * sin(angleInRad).toFloat()
 
             // генерируем текст в зависимости от режима
             val percent = (stat.total / total * 100).toInt()
@@ -56,19 +61,28 @@ fun DonutChart(
                 LabelMode.NAME -> stat.category
                 LabelMode.BOTH -> "$percent% ${stat.category}"
             }
+            // Автоповорот, чтобы текст не был вверх ногами
+            val adjustedAngle = if (middleAngle > 90f && middleAngle < 270f) {
+                middleAngle + 180f // переворачиваем
+            } else {
+                middleAngle
+            }
 
             // рисуем текст
             drawContext.canvas.nativeCanvas.apply {
+                save() // сохраняем состояние канваса
+                translate(textX, textY)  // переносим систему координат в точку на дуге
+                rotate(adjustedAngle)      // поворачиваем по направлению радиуса
                 drawText(
                     text,
-                    textX,
-                    textY,
+                    0f, 0f,  // теперь рисуем в "локальных" координатах
                     android.graphics.Paint().apply {
                         color = android.graphics.Color.BLACK
-                        textSize = 28f
+                        textSize = size.minDimension * 0.06f
                         textAlign = android.graphics.Paint.Align.CENTER
                     }
                 )
+                restore() // возвращаем систему координат назад
             }
             startAngle += sweepAngle
         }
@@ -116,7 +130,6 @@ fun DonutChartPreview() {
             stats = mockStats,
             colors = colors,
             modifier = Modifier.size(250.dp),
-            strokeWidth = 250f,
             labelMode = LabelMode.BOTH
         )
     }

@@ -8,6 +8,7 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ColumnScope
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -16,18 +17,14 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowDownward
 import androidx.compose.material.icons.filled.ArrowUpward
 import androidx.compose.material.icons.filled.DateRange
-import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -42,6 +39,7 @@ import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -49,9 +47,10 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import com.example.qrmealtrack.R
 import com.example.qrmealtrack.domain.model.PriceChangeItem
 import com.example.qrmealtrack.domain.usecase.StatsSummary
+import com.example.qrmealtrack.presentation.stats.components.DonutChartWithCenterButton
+import com.example.qrmealtrack.presentation.stats.components.rememberCategoryColors
 import com.example.qrmealtrack.presentation.stats.model.format
 import com.example.qrmealtrack.ui.theme.stats.StatsTheme
-import com.example.qrmealtrack.ui.theme.stats.StatsTheme.colors
 import com.example.qrmealtrack.ui.theme.stats.glassGlowBackground
 
 @Composable
@@ -72,27 +71,68 @@ fun StatsScreenContent(
     val model = state.uiModel
     val colors = StatsTheme.colors
 
+    val chartPadding = 16.dp
+    val chartSize = 200.dp
+    val chartStrokeWidth = 200f
+    val chartSpacer = 24.dp
+
     StatsTheme {
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .background(colors.background)
-        ) {
+        Column {
             TimeFilterRow(
                 selected = state.selectedFilter,
                 onSelect = onFilterSelected
             )
+            LazyColumn(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .background(colors.background),
+                contentPadding = PaddingValues(bottom = 40.dp)
+            ) {
+                item {
+                    StatsGrid(
+                        weight = model.formattedWeight,
+                        cost = model.formattedCost,
+                        topDish = model.topDish,
+                        topDishCost = model.formattedTopDishCost,
+                        priceChanges = model.priceChanges,
+                        priceUpCount = model.priceUpCount,
+                        priceDownCount = model.priceDownCount,
+                        priceDynamics = model.priceDynamics
+                    )
+                    Spacer(Modifier.height(chartSpacer))
+                }
 
-            StatsGrid(
-                weight = model.formattedWeight,
-                cost = model.formattedCost,
-                topDish = model.topDish,
-                topDishCost = model.formattedTopDishCost,
-                priceChanges = model.priceChanges,
-                priceUpCount = model.priceUpCount,
-                priceDownCount = model.priceDownCount,
-                priceDynamics = model.priceDynamics
-            )
+                item {
+                    if (state.categoryStats.isNotEmpty()) {
+                        val categoryColors = rememberCategoryColors()
+
+                        Box(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(chartPadding),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            DonutChartWithCenterButton(
+                                stats = state.categoryStats,
+                                colors = categoryColors,
+                                modifier = Modifier
+                                    .padding(chartPadding)
+                                    .size(chartSize),
+                                strokeWidth = chartStrokeWidth // остаётся квадратом
+                            )
+                        }
+                    } else {
+                        Text(
+                            text = "Нет данных за выбранный период",
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(16.dp),
+                            textAlign = TextAlign.Center,
+                            color = colors.textSecondary
+                        )
+                    }
+                }
+            }
         }
     }
 }
@@ -197,7 +237,7 @@ fun StatsGrid(
                 modifier = Modifier.weight(1f))
         }
         Spacer(Modifier.height(16.dp))
-        PriceDynamicsCard(items = priceDynamics)
+//        PriceDynamicsCard(items = priceDynamics)
     }
 }
 

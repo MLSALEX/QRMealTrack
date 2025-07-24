@@ -14,6 +14,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 
@@ -39,6 +40,7 @@ fun LabelModeButton(
     Box(
         modifier = modifier
             .size(80.dp)
+            .clip(CircleShape)
             .background(Color.LightGray, shape = CircleShape)
             .clickable { onModeChange() },
         contentAlignment = Alignment.Center
