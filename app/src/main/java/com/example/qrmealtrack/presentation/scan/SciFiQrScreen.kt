@@ -13,7 +13,6 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.size
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.CornerRadius
@@ -23,90 +22,133 @@ import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.BlendMode
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.Paint
 import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.PathEffect
 import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.graphics.drawscope.Stroke
+import androidx.compose.ui.graphics.drawscope.drawIntoCanvas
+import androidx.compose.ui.graphics.nativeCanvas
+import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.util.lerp
 
+object SciFiTheme {
+    val background = Color(0xFF050A12)
+    val gridLine = Color(0xFF00CFFF)
+    val gridGlow = Color.White.copy(alpha = 0.4f)
+    val frameGlowBase = Color(0x8000CFFF)
+    val frameHighlight = Color(0xFF00CFFF)
+    val holeTint = Color(0x3300CFFF)
+
+    val frameCornerRadius = 12.dp
+    val frameSize = 160.dp
+    val gridPadding = 90.dp
+    val gridHeight = 100.dp
+    const val gridRows = 8
+    const val gridColumns = 8
+}
+
 @Composable
 fun SciFiQrScreen() {
-    val gridPaddingDp = 90.dp
-    val gridPaddingPx = with(LocalDensity.current) { gridPaddingDp.toPx() }
-    val frameSizeDp = 180.dp
-    val frameWidthPx = with(LocalDensity.current) { frameSizeDp.toPx() }
-    val gridHeightPx = with(LocalDensity.current) { 100.dp.toPx() }
+    val density = LocalDensity.current
+    val cornerRadiusPx = with(density) { SciFiTheme.frameCornerRadius.toPx() }
+    val gridPaddingPx = with(density) { SciFiTheme.gridPadding.toPx() }
+    val gridHeightPx = with(density) { SciFiTheme.gridHeight.toPx() }
+    val frameWidthPx = with(density) { SciFiTheme.frameSize.toPx() }
 
-    // ✅ выносим анимацию за пределы Canvas (не пересоздается)
-    val infiniteTransition = rememberInfiniteTransition(label = "")
-    val glowAlpha by infiniteTransition.animateFloat(
+    // 🔥 Transition 1 – ТОЛЬКО для сетки
+    val pulseTransition = rememberInfiniteTransition(label = "GridPulse")
+    val pulse by pulseTransition.animateFloat(
+        initialValue = 0.1f,
+        targetValue = 1.3f,
+        animationSpec = infiniteRepeatable(
+            tween(1800, easing = LinearEasing),
+            RepeatMode.Reverse
+        ),
+        label = "pulse"
+    )
+
+    // 🔥 Transition 2 – для рамки (glowAlpha + бегущий свет вместе)
+    val frameTransition = rememberInfiniteTransition(label = "FrameRunner")
+    val glowAlpha by frameTransition.animateFloat(
         initialValue = 0.3f,
         targetValue = 0.8f,
         animationSpec = infiniteRepeatable(
             tween(2000, easing = LinearEasing),
             RepeatMode.Reverse
         ),
-        label = ""
+        label = "glowAlpha"
+    )
+    val frameProgress by frameTransition.animateFloat(
+        initialValue = 0f,
+        targetValue = 1f,
+        animationSpec = infiniteRepeatable(
+            tween(4000, easing = LinearEasing),
+            RepeatMode.Restart
+        ),
+        label = "frameProgress"
     )
 
-    // ✅ цвет glow обновляем через rememberUpdatedState
-    val glowColor by rememberUpdatedState(Color(0x8000CFFF).copy(alpha = glowAlpha))
+    val frameGlowColor = SciFiTheme.frameGlowBase.copy(alpha = glowAlpha)
 
     Box(
         modifier = Modifier
             .fillMaxSize()
-            .background(Color(0xFF050A12))
+            .background(SciFiTheme.background),
+        contentAlignment = Alignment.Center
     ) {
-        // === Фон ===
-        SciFiBackgroundWithHole(holeSizeDp = frameSizeDp)
-
-        DoublePerspectiveGrid(
-            frameWidthPx = frameWidthPx,
-            topGridHeightPx = gridHeightPx,
-            bottomGridHeightPx = gridHeightPx,
-            rows = 8,
-            columns = 8,
-            lineColor = Color(0xFF00CFFF),
-            modifier = Modifier.fillMaxSize(),
-            paddingPx = gridPaddingPx,
+        // ✅ 1. Фон рисуется один раз и не перерисовывается
+        SciFiBackgroundWithHole(
+            holeSizeDp = SciFiTheme.frameSize,
+            cornerRadius = cornerRadiusPx,
+            tintColor = SciFiTheme.holeTint
         )
+
+        // ✅ 2. Сетка обновляется ТОЛЬКО по pulse
+        DoublePerspectiveGrid(
+            paddingPx = gridPaddingPx,
+            gridHeightPx = gridHeightPx,
+            frameWidthPx = frameWidthPx,
+            pulse = pulse
+        )
+
+        // ✅ 3. Рамка обновляется ТОЛЬКО по frameProgress + glowAlpha
         NeonTripleQRFrame(
-            frameSizeDp = frameSizeDp,
-            frameColor = glowColor,
-            glowColor = Color(0xFF00CFFF),
-            modifier = Modifier.align(Alignment.Center)
+            frameSizeDp = SciFiTheme.frameSize,
+            frameColor = frameGlowColor,
+            glowColor = SciFiTheme.frameHighlight,
+            frameProgress = frameProgress,
+            cornerRadiusPx = cornerRadiusPx
         )
     }
 }
 
 @Composable
 fun SciFiBackgroundWithHole(
-    holeSizeDp: Dp
+    holeSizeDp: Dp,
+    cornerRadius: Float,
+    tintColor: Color
 ) {
     Canvas(modifier = Modifier.fillMaxSize()) {
         val w = size.width
         val h = size.height
         val holeSizePx = holeSizeDp.toPx()
 
-        // Основной фон с sci-fi градиентом
         val gradient = Brush.radialGradient(
-            colors = listOf(Color(0x2200CFFF), Color(0xFF050A12)),
+            colors = listOf(SciFiTheme.frameGlowBase, SciFiTheme.background),
             center = center,
-            radius = size.minDimension / 1.5f
+            radius = size.minDimension / 1.9f
         )
         drawRect(brush = gradient, size = size)
 
-        // Координаты окна
         val left = (w - holeSizePx) / 2
         val top = (h - holeSizePx) / 2
         val holeSize = Size(holeSizePx, holeSizePx)
-        val cornerRadius = 30.dp.toPx()
 
-        // ✅ 1. Вырезаем реальное окно → камера видна
         drawRoundRect(
             color = Color.Transparent,
             topLeft = Offset(left, top),
@@ -114,133 +156,181 @@ fun SciFiBackgroundWithHole(
             cornerRadius = CornerRadius(cornerRadius, cornerRadius),
             blendMode = BlendMode.Clear
         )
-
-        // ✅ 2. Накладываем сплошной оттенок поверх окна (камера будет видна, но с тоном)
         drawRoundRect(
-            color = Color(0x3300CFFF), // лёгкий циан оттенок
+            color = tintColor,
             topLeft = Offset(left, top),
             size = holeSize,
             cornerRadius = CornerRadius(cornerRadius, cornerRadius),
-            alpha = 1f // прозрачность, камера не перекрыта
+            alpha = 1f
         )
     }
 }
+
 @Composable
 fun DoublePerspectiveGrid(
-    frameWidthPx: Float,
-    topGridHeightPx: Float,
-    bottomGridHeightPx: Float,
     paddingPx: Float,
-    rows: Int,
-    columns: Int,
-    lineColor: Color,
-    modifier: Modifier = Modifier
+    gridHeightPx: Float,
+    frameWidthPx: Float,
+    pulse: Float // <-- управляется снаружи
 ) {
-    Canvas(modifier = modifier) {
+    Canvas(modifier = Modifier.fillMaxSize()) {
         val w = size.width
         val h = size.height
 
-        // === ВЕРХНЯЯ СЕТКА (от самого верха до заданной высоты topGridHeightPx)
-        val top_yStart = paddingPx
-        val top_yEnd = paddingPx + topGridHeightPx
-
-        val top_topLeft = 0f
-        val top_topRight = w
-        val top_bottomLeft = (w - frameWidthPx) / 2f
-        val top_bottomRight = (w + frameWidthPx) / 2f
-
-        drawPerspectiveGrid(
-            yStart = top_yStart,
-            yEnd = top_yEnd,
-            topLeft = top_topLeft,
-            topRight = top_topRight,
-            bottomLeft = top_bottomLeft,
-            bottomRight = top_bottomRight,
-            rows = rows,
-            columns = columns,
-            color = lineColor
+        // Верхняя сетка (сужается вниз)
+        drawPerspectiveGridWithGlow(
+            yStart = paddingPx,
+            yEnd = paddingPx + gridHeightPx,
+            topLeft = 0f,
+            topRight = w,
+            bottomLeft = (w - frameWidthPx) / 2f,
+            bottomRight = (w + frameWidthPx) / 2f,
+            rows = SciFiTheme.gridRows,
+            columns = SciFiTheme.gridColumns,
+            baseColor = SciFiTheme.gridLine,
+            pulse = pulse
         )
 
-        // === НИЖНЯЯ СЕТКА (от самого низа до заданной высоты bottomGridHeightPx)
-        val bottom_yStart = h - paddingPx                 // низ экрана
-        val bottom_yEnd = h - paddingPx - bottomGridHeightPx  // на сколько вверх она поднимается
-
-        val bottom_topLeft = (w - frameWidthPx) / 2f
-        val bottom_topRight = (w + frameWidthPx) / 2f
-        val bottom_bottomLeft = 0f
-        val bottom_bottomRight = w
-
-        drawPerspectiveGrid(
-            yStart = bottom_yStart,
-            yEnd = bottom_yEnd,
-            topLeft = bottom_bottomLeft,
-            topRight = bottom_bottomRight,
-            bottomLeft = bottom_topLeft,
-            bottomRight = bottom_topRight,
-            rows = rows,
-            columns = columns,
-            color = lineColor
+        // Нижняя сетка (расширяется вверх)
+        drawPerspectiveGridWithGlow(
+            yStart = h - paddingPx,
+            yEnd = h - paddingPx - gridHeightPx,
+            topLeft = 0f,
+            topRight = w,
+            bottomLeft = (w - frameWidthPx) / 2f,
+            bottomRight = (w + frameWidthPx) / 2f,
+            rows = SciFiTheme.gridRows,
+            columns = SciFiTheme.gridColumns,
+            baseColor = SciFiTheme.gridLine,
+            pulse = pulse
         )
     }
 }
 
+// === Glow-эффект + линии сетки ===
+private fun DrawScope.drawPerspectiveGridWithGlow(
+    yStart: Float,
+    yEnd: Float,
+    topLeft: Float,
+    topRight: Float,
+    bottomLeft: Float,
+    bottomRight: Float,
+    rows: Int,
+    columns: Int,
+    baseColor: Color,
+    pulse: Float
+) {
+    val glowAlpha = lerp(0.1f, 0.7f, pulse)
+    val glowBlur = lerp(1f, 16f, pulse)
+    val glowStroke = lerp(1f, 10f, pulse)
+
+    for (i in 0..columns) {
+        val t = i / columns.toFloat()
+        val xTop = lerp(topLeft, topRight, t)
+        val xBottom = lerp(bottomLeft, bottomRight, t)
+
+        // Мягкий размытый ореол
+        drawBlurredLine(
+            color = baseColor.copy(alpha = glowAlpha),
+            start = Offset(xTop, yStart),
+            end = Offset(xBottom, yEnd),
+            blurRadius = glowBlur,
+            strokeWidth = glowStroke
+        )
+
+        // Ядро линии (свет + белая подсветка)
+        drawLine(
+            color = baseColor,
+            start = Offset(xTop, yStart),
+            end = Offset(xBottom, yEnd),
+            strokeWidth = 1.5f
+        )
+        drawLine(
+            color = SciFiTheme.gridGlow,
+            start = Offset(xTop, yStart),
+            end = Offset(xBottom, yEnd),
+            strokeWidth = 0.8f
+        )
+    }
+
+    // Горизонтали (без glow, чтобы не перегружать)
+    for (i in 0..rows) {
+        val t = i / rows.toFloat()
+        val y = lerp(yStart, yEnd, t)
+        val leftX = lerp(topLeft, bottomLeft, t)
+        val rightX = lerp(topRight, bottomRight, t)
+
+        drawLine(
+            color = baseColor.copy(alpha = 0.5f),
+            start = Offset(leftX, y),
+            end = Offset(rightX, y),
+            strokeWidth = 1f
+        )
+    }
+}
+
+// === Свечение линии с blur ===
+private fun DrawScope.drawBlurredLine(
+    start: Offset,
+    end: Offset,
+    color: Color,
+    blurRadius: Float,
+    strokeWidth: Float
+) {
+    drawIntoCanvas { canvas ->
+        val paint = Paint().asFrameworkPaint().apply {
+            isAntiAlias = true
+            style = android.graphics.Paint.Style.STROKE
+            this.color = color.toArgb()
+            this.strokeWidth = strokeWidth
+            maskFilter = android.graphics.BlurMaskFilter(
+                blurRadius,
+                android.graphics.BlurMaskFilter.Blur.NORMAL
+            )
+        }
+        canvas.nativeCanvas.drawLine(start.x, start.y, end.x, end.y, paint)
+    }
+}
 
 @Composable
 fun NeonTripleQRFrame(
     frameSizeDp: Dp,
     frameColor: Color,
     glowColor: Color,
+    frameProgress: Float,
+    cornerRadiusPx: Float,
     modifier: Modifier = Modifier
 ) {
-    val infiniteTransition = rememberInfiniteTransition(label = "")
-    val animatedProgress by infiniteTransition.animateFloat(
-        initialValue = 0f,
-        targetValue = 1f,
-        animationSpec = infiniteRepeatable(
-            tween(durationMillis = 4000, easing = LinearEasing),
-            RepeatMode.Restart
-        ),
-        label = "progress"
-    )
-
-    Box(
-        modifier = modifier.size(frameSizeDp)
-    ) {
+    Box(modifier = modifier.size(frameSizeDp)) {
         Canvas(modifier = Modifier.fillMaxSize()) {
-            val strokeWidths = listOf(4f, 8f, 12f) // три слоя
+            val strokeWidths = listOf(4f, 4f, 4f)
             val paddingStep = 10.dp.toPx()
-            val cornerRadius = 30.dp.toPx()
-
             val totalPerimeter = 2 * (size.width + size.height)
 
             strokeWidths.forEachIndexed { index, strokeWidth ->
                 val inset = index * paddingStep
 
-                // ===== СПЛОШНАЯ ЛИНИЯ =====
+                // Статическая рамка
                 drawRoundRect(
                     color = frameColor,
                     topLeft = Offset(inset, inset),
                     size = Size(size.width - inset * 2, size.height - inset * 2),
-                    cornerRadius = CornerRadius(cornerRadius, cornerRadius),
+                    cornerRadius = CornerRadius(cornerRadiusPx, cornerRadiusPx),
                     style = Stroke(width = strokeWidth)
                 )
 
-                // ===== ПУТЬ ДЛЯ БЕГУЩЕГО СВЕТА =====
+                // Бегущий свет (по frameProgress)
                 val roundRect = RoundRect(
                     left = inset,
                     top = inset,
                     right = size.width - inset,
                     bottom = size.height - inset,
-                    cornerRadius = CornerRadius(cornerRadius, cornerRadius)
+                    cornerRadius = CornerRadius(cornerRadiusPx, cornerRadiusPx)
                 )
+                val path = Path().apply { addRoundRect(roundRect) }
 
-                val path = Path().apply {
-                    addRoundRect(roundRect) // ✅ корректно добавляем форму
-                }
-
-                // Длина светящегося сегмента (~15% периметра)
                 val lightLength = totalPerimeter * 0.15f
-                val lightStart = totalPerimeter * animatedProgress
+                val lightStart = totalPerimeter * frameProgress
                 val lightEnd = (lightStart + lightLength).coerceAtMost(totalPerimeter)
 
                 drawPathSegmentGlow(
@@ -256,6 +346,7 @@ fun NeonTripleQRFrame(
     }
 }
 
+// === Подсветка для бегущего света ===
 fun DrawScope.drawPathSegmentGlow(
     path: Path,
     start: Float,
@@ -274,45 +365,6 @@ fun DrawScope.drawPathSegmentGlow(
         color = glowColor.copy(alpha = 0.8f),
         style = Stroke(width = strokeWidth, pathEffect = effect)
     )
-}
-
-private fun DrawScope.drawPerspectiveGrid(
-    yStart: Float,
-    yEnd: Float,
-    topLeft: Float,
-    topRight: Float,
-    bottomLeft: Float,
-    bottomRight: Float,
-    rows: Int,
-    columns: Int,
-    color: Color
-) {
-    // Горизонтальные линии
-    for (i in 0..rows) {
-        val t = i / rows.toFloat()
-        val y = lerp(yStart, yEnd, t)
-        val leftX = lerp(topLeft, bottomLeft, t)
-        val rightX = lerp(topRight, bottomRight, t)
-        drawLine(
-            color = color,
-            start = Offset(leftX, y),
-            end = Offset(rightX, y),
-            strokeWidth = 1f
-        )
-    }
-
-    // Вертикальные линии
-    for (i in 0..columns) {
-        val t = i / columns.toFloat()
-        val xTop = lerp(topLeft, topRight, t)
-        val xBottom = lerp(bottomLeft, bottomRight, t)
-        drawLine(
-            color = color,
-            start = Offset(xTop, yStart),
-            end = Offset(xBottom, yEnd),
-            strokeWidth = 1f
-        )
-    }
 }
 
 @Preview(showBackground = true, backgroundColor = 0xFF000000)
