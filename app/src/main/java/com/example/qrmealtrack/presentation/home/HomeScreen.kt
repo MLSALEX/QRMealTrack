@@ -20,7 +20,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -54,7 +53,6 @@ import com.example.qrmealtrack.presentation.components.CategoryFilterDropdown
 import com.example.qrmealtrack.presentation.components.CategorySelectionSheet
 import com.example.qrmealtrack.presentation.components.CategoryUi
 import com.example.qrmealtrack.presentation.components.FilterType
-import com.example.qrmealtrack.presentation.components.getDefaultCategories
 import com.example.qrmealtrack.presentation.model.ReceiptUiModel
 import com.example.qrmealtrack.presentation.model.displayName
 import com.example.qrmealtrack.presentation.model.iconRes
@@ -314,8 +312,10 @@ fun ReceiptCard(
                     }
                 }
 
-                Row (modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceBetween){
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween
+                ) {
                     Text(
                         text = "Total: ${receipt.total}",
                         style = MaterialTheme.typography.labelLarge
@@ -329,61 +329,3 @@ fun ReceiptCard(
         }
     }
 }
-
-//@Preview(
-//    name = "Sci-Fi Receipt Card",
-//    showBackground = true,
-//    backgroundColor = 0xFF0A0F1C
-//)
-//@Composable
-//fun SciFiReceiptCardPreview() {
-//    QRMealTrackTheme {
-//// Пример списка покупок
-//        val sampleMeals = listOf(
-//            ItemUiModel(
-//                name = "Burger Deluxe",
-//                weight = "250g",
-//                unitPrice = "5.99",
-//                price = "5.99",
-//                category = "Fast Food",
-//                isWeightBased = false
-//            ),
-//            ItemUiModel(
-//                name = "French Fries",
-//                weight = "150g",
-//                unitPrice = "2.49",
-//                price = "2.49",
-//                category = "Snack",
-//                isWeightBased = false
-//            ),
-//            ItemUiModel(
-//                name = "Coca-Cola",
-//                weight = "0.5L",
-//                unitPrice = "1.50",
-//                price = "1.50",
-//                category = "Drink",
-//                isWeightBased = false
-//            )
-//        )
-//
-//        // Пример чека
-//        val sampleReceipt = ReceiptUiModel(
-//            id = 1L,
-//            fiscalCode = "ABC123456",
-//            enterprise = "Cyber Food Market",
-//            dateTime = System.currentTimeMillis(),
-//            date = "15.07.2025",
-//            items = sampleMeals,
-//            total = 9.98,
-//            isToday = true
-//        )
-//
-//        // Отображаем sci-fi карточку
-//        ReceiptCard(
-//            receipt = sampleReceipt,
-//            isExpanded = true, // развернутая карточка
-//            onCardToggle = {},
-//            onLongClick = {}
-//        )
-//    }
-//}
