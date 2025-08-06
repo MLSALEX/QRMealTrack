@@ -13,6 +13,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -22,24 +23,32 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.hilt.navigation.compose.hiltViewModel
 import com.example.qrmealtrack.presentation.components.AppScaffold
 import com.example.qrmealtrack.presentation.components.FilterType
 import com.example.qrmealtrack.presentation.components.getDefaultCategories
 import com.example.qrmealtrack.presentation.components.withScaffoldPadding
 import com.example.qrmealtrack.presentation.trends.components.GranularityType
 import com.example.qrmealtrack.presentation.trends.components.LineChart
+import com.example.qrmealtrack.presentation.trends.components.MultiLineChart
 import com.example.qrmealtrack.presentation.trends.components.TrendsControlBar
-import com.example.qrmealtrack.presentation.trends.mock.mockDayPoints
-import com.example.qrmealtrack.presentation.trends.mock.mockMonthPoints
-import com.example.qrmealtrack.presentation.trends.mock.mockWeekPoints
-
+import com.example.qrmealtrack.presentation.trends.model.UiChartPoint
+import com.example.qrmealtrack.presentation.trends.state.TrendsUiState
+import com.example.qrmealtrack.presentation.trends.viewmodel.TrendsViewModel
+import com.example.qrmealtrack.presentation.utils.CategoryColorProvider
 
 @Composable
-fun TrendsScreen() {
+fun TrendsScreen(viewModel: TrendsViewModel = hiltViewModel()) {
+    val state by viewModel.uiState.collectAsState()
+
     AppScaffold { innerPadding ->
         RequireLandscapeOrientation()
         TrendsLandscapeContent(
-            modifier = Modifier.withScaffoldPadding(innerPadding)
+            modifier = Modifier.withScaffoldPadding(innerPadding),
+            state = state,
+            onFilterChange = viewModel::onFilterChange,
+            onClearFilter = viewModel::clearFilter,
+            onGranularityChange = viewModel::onGranularityChange
         )
     }
 }
@@ -57,17 +66,14 @@ private fun RequireLandscapeOrientation() {
 }
 
 @Composable
-fun TrendsLandscapeContent(modifier: Modifier = Modifier) {
-    var selectedGranularity by remember { mutableStateOf(GranularityType.WEEK) }
+fun TrendsLandscapeContent(
+    modifier: Modifier = Modifier,
+    state: TrendsUiState,
+    onFilterChange: (FilterType.Categories) -> Unit,
+    onClearFilter: () -> Unit,
+    onGranularityChange: (GranularityType) -> Unit
+) {
     var selectedIndex by remember { mutableStateOf<Int?>(null) }
-    val chartPoints = remember(selectedGranularity) {
-        when (selectedGranularity) {
-            GranularityType.DAY -> mockDayPoints
-            GranularityType.WEEK -> mockWeekPoints
-            GranularityType.MONTH -> mockMonthPoints
-        }
-    }
-    var filterState by remember { mutableStateOf(getDefaultCategories()) }
 
     Column(
         modifier = modifier
@@ -76,16 +82,12 @@ fun TrendsLandscapeContent(modifier: Modifier = Modifier) {
             .padding(16.dp)
     ) {
         TrendsControlBar(
-            filterState = filterState,
-            onFilterChange = { filterState = it },
-            onClearFilter = {
-                filterState = FilterType.Categories(
-                    filterState.categories.map { it.copy(isSelected = false) }.toSet()
-                )
-            },
-            selectedGranularity = selectedGranularity,
-            onGranularityChange = { selectedGranularity = it },
-            onCalendarClick = { /* TODO: open date picker */ }
+            filterState = state.filter,
+            onFilterChange = onFilterChange,
+            onClearFilter = onClearFilter,
+            selectedGranularity = state.granularity,
+            onGranularityChange = onGranularityChange,
+            onCalendarClick = { /* TODO */ }
         )
 
         Spacer(Modifier.height(12.dp))
@@ -95,8 +97,8 @@ fun TrendsLandscapeContent(modifier: Modifier = Modifier) {
                 .fillMaxWidth()
                 .weight(1f)
         ) {
-            LineChart(
-                points = chartPoints,
+            MultiLineChart( // универсальный график
+                groupedPoints = state.groupedPoints,
                 selectedIndex = selectedIndex,
                 onPointTap = { selectedIndex = it },
                 modifier = Modifier.fillMaxSize()
@@ -105,10 +107,47 @@ fun TrendsLandscapeContent(modifier: Modifier = Modifier) {
     }
 }
 
-@Preview(showBackground = true, backgroundColor = 0xFF050A12)
+@Preview(
+    showBackground = true,
+    backgroundColor = 0xFF050A12,
+    widthDp = 800,
+    heightDp = 480
+)
 @Composable
-fun TrendsScreenPreview() {
+fun TrendsLandscapePreview() {
+    val mockCategories = getDefaultCategories()
+    val selectedCategories = mockCategories.categories.map {
+        if (it.key == "meals" || it.key == "transport") it.copy(isSelected = true) else it
+    }.toSet()
+
+    val filter = FilterType.Categories(selectedCategories)
+    val colorProvider = CategoryColorProvider()
+
+    val points = listOf(
+        UiChartPoint("meals", 120f, "Aug 01", colorProvider.getColorForCategory("meals")),
+        UiChartPoint("transport", 90f, "Aug 01", colorProvider.getColorForCategory("transport")),
+        UiChartPoint("meals", 140f, "Aug 02", colorProvider.getColorForCategory("meals")),
+        UiChartPoint("transport", 80f, "Aug 02", colorProvider.getColorForCategory("transport")),
+        UiChartPoint("meals", 160f, "Aug 03", colorProvider.getColorForCategory("meals")),
+        UiChartPoint("transport", 110f, "Aug 03", colorProvider.getColorForCategory("transport"))
+    )
+
+    val groupedPoints = points.groupBy { it.category }
+
+    val mockState = TrendsUiState(
+        filter = filter,
+        granularity = GranularityType.DAY,
+        groupedPoints = groupedPoints
+    )
+
     MaterialTheme {
-        TrendsScreen()
+        TrendsLandscapeContent(
+            state = mockState,
+            modifier = Modifier.fillMaxSize(),
+            onFilterChange = {},
+            onClearFilter = {},
+            onGranularityChange = {}
+        )
     }
 }
+

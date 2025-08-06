@@ -2,12 +2,12 @@ package com.example.qrmealtrack.presentation.trends.util
 
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
-import com.example.qrmealtrack.presentation.trends.model.ChartPoint
+import com.example.qrmealtrack.presentation.trends.model.UiChartPoint
 import kotlin.math.abs
 
 fun calculateNearestPoint(
     tapOffset: Offset,
-    points: List<ChartPoint>,
+    points: List<UiChartPoint>,
     canvasSize: Size
 ): Int? {
     if (points.isEmpty()) return null

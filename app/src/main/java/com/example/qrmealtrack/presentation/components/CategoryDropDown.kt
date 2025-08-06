@@ -265,11 +265,11 @@ private fun getTitle(title: String, filterType: FilterType.Categories): String {
 fun getDefaultCategories(): FilterType.Categories {
     return FilterType.Categories(
         setOf(
-            CategoryUi(R.drawable.plate, ReceiptCategory.MEALS.key, "Meals", false),
-            CategoryUi(R.drawable.clothing, ReceiptCategory.CLOTHING.key, "Clothing", false),
-            CategoryUi(R.drawable.beauty, ReceiptCategory.BEAUTY.key, "Beauty", false),
-            CategoryUi(R.drawable.transport, ReceiptCategory.TRANSPORT.key, "Transport", false),
-            CategoryUi(R.drawable.cart, ReceiptCategory.GROCERIES.key, "Groceries", false)
+            CategoryUi(R.drawable.plate, ReceiptCategory.MEALS.key.lowercase(), "Meals", false),
+            CategoryUi(R.drawable.clothing, ReceiptCategory.CLOTHING.key.lowercase(), "Clothing", false),
+            CategoryUi(R.drawable.beauty, ReceiptCategory.BEAUTY.key.lowercase(), "Beauty", false),
+            CategoryUi(R.drawable.transport, ReceiptCategory.TRANSPORT.key.lowercase(), "Transport", false),
+            CategoryUi(R.drawable.cart, ReceiptCategory.GROCERIES.key.lowercase(), "Groceries", false)
         )
     )
 }

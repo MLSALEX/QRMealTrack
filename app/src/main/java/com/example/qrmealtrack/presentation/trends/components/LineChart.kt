@@ -20,14 +20,14 @@ import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.toSize
-import com.example.qrmealtrack.presentation.trends.model.ChartPoint
+import com.example.qrmealtrack.presentation.trends.model.UiChartPoint
 import com.example.qrmealtrack.presentation.trends.util.calculateNearestPoint
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.geometry.Size
 
 @Composable
 fun LineChart(
-    points: List<ChartPoint>,
+    points: List<UiChartPoint>,
     modifier: Modifier = Modifier,
     selectedIndex: Int? = null,
     onPointTap: (Int) -> Unit
@@ -80,7 +80,7 @@ fun LineChart(
             // Draw connecting lines
             for (i in 0 until coordinates.lastIndex) {
                 drawLine(
-                    color = Color.Cyan.copy(alpha = 0.8f),
+                    color = points[i].color,
                     start = coordinates[i],
                     end = coordinates[i + 1],
                     strokeWidth = 4f
@@ -90,7 +90,7 @@ fun LineChart(
             // Draw points
             coordinates.forEachIndexed { i, offset ->
                 drawCircle(
-                    color = if (i == selectedIndex) Color.Magenta else Color.Cyan,
+                    color = if (i == selectedIndex) Color.Magenta else points[i].color,
                     radius = if (i == selectedIndex) 12f else 8f,
                     center = offset
                 )

@@ -12,15 +12,15 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import androidx.compose.foundation.shape.RoundedCornerShape
-import com.example.qrmealtrack.presentation.trends.model.ChartPoint
+import com.example.qrmealtrack.presentation.trends.model.UiChartPoint
 
 @Composable
-fun TooltipBox(point: ChartPoint, modifier: Modifier = Modifier) {
+fun TooltipBox(point: UiChartPoint, modifier: Modifier = Modifier) {
     Box(
         modifier = modifier
             .clip(RoundedCornerShape(8.dp))
             .background(Color(0xFF0A0E1A))
-            .border(1.dp, Color.Cyan, RoundedCornerShape(8.dp))
+            .border(1.dp, point.color, RoundedCornerShape(8.dp))
             .padding(horizontal = 12.dp, vertical = 8.dp)
     ) {
         Column(horizontalAlignment = Alignment.CenterHorizontally) {
@@ -31,7 +31,7 @@ fun TooltipBox(point: ChartPoint, modifier: Modifier = Modifier) {
             )
             Text(
                 text = "${point.value.toInt()} MDL",
-                color = Color.Cyan,
+                color = point.color,
                 style = MaterialTheme.typography.titleMedium
             )
             Text(
