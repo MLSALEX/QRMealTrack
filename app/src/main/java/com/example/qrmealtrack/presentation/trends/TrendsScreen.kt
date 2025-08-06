@@ -15,10 +15,12 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateMapOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.tooling.preview.Preview
@@ -73,7 +75,9 @@ fun TrendsLandscapeContent(
     onClearFilter: () -> Unit,
     onGranularityChange: (GranularityType) -> Unit
 ) {
+    var selectedCategory by remember { mutableStateOf<String?>(null) }
     var selectedIndex by remember { mutableStateOf<Int?>(null) }
+    var selectedOffset by remember { mutableStateOf<Offset?>(null) }
 
     Column(
         modifier = modifier
@@ -97,10 +101,16 @@ fun TrendsLandscapeContent(
                 .fillMaxWidth()
                 .weight(1f)
         ) {
-            MultiLineChart( // универсальный график
+            MultiLineChart(
                 groupedPoints = state.groupedPoints,
+                selectedCategory = selectedCategory,
                 selectedIndex = selectedIndex,
-                onPointTap = { selectedIndex = it },
+                selectedOffset = selectedOffset,
+                onPointTap = { category, index, offset ->
+                    selectedCategory = category
+                    selectedIndex = index
+                    selectedOffset = offset
+                },
                 modifier = Modifier.fillMaxSize()
             )
         }

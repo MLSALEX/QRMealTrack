@@ -23,19 +23,23 @@ class TrendsViewModel @Inject constructor(
 
     val uiState: StateFlow<TrendsUiState> = combine(_granularity, _filter) { granularity, filter ->
         val selectedKeys = filter.getSelectedKeys()
-        val points = getFilteredPointsUseCase(granularity, selectedKeys)
-            .groupBy { it.category }
+        val groupedPoints = getFilteredPointsUseCase(granularity, selectedKeys)
 
         TrendsUiState(
             filter = filter,
             granularity = granularity,
-            groupedPoints = points
+            groupedPoints = groupedPoints
         )
-    }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), TrendsUiState(
-        filter = getDefaultCategories(),
-        granularity = GranularityType.WEEK,
-        groupedPoints = emptyMap()
-    ))
+    }.stateIn(
+        scope = viewModelScope,
+        started = SharingStarted.WhileSubscribed(5000),
+        initialValue = TrendsUiState(
+            filter = getDefaultCategories(),
+            granularity = GranularityType.WEEK,
+            groupedPoints = emptyMap()
+        )
+    )
+
 
     fun onFilterChange(newFilter: FilterType.Categories) {
         _filter.value = newFilter
