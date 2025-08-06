@@ -11,10 +11,7 @@ data class StatsUiState(
         totalCost = 0.0,
         totalWeight = 0.0,
         topDish = null,
-        topDishCost = 0.0,
-        priceChanges = 0,
-        priceUpCount = 0,
-        priceDownCount = 0
+        topDishCost = 0.0
     ),
     val priceDynamics: List<PriceChangeItem> = emptyList(),
     val selectedFilter: TimeFilter = TimeFilter.Week,

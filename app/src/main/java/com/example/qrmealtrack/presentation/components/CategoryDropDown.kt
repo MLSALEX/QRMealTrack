@@ -1,11 +1,11 @@
 package com.example.qrmealtrack.presentation.components
 
 import androidx.annotation.DrawableRes
-import androidx.compose.animation.animateContentSize
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
@@ -16,35 +16,44 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.requiredWidth
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.ArrowDropDown
+import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Close
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.derivedStateOf
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Dp
+import androidx.compose.ui.unit.DpOffset
 import androidx.compose.ui.unit.dp
 import com.example.qrmealtrack.R
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.setValue
-import androidx.compose.runtime.derivedStateOf
-import androidx.compose.foundation.layout.size
-import androidx.compose.material.icons.filled.Check
-import androidx.compose.material3.DropdownMenuItem
-import androidx.compose.ui.res.painterResource
 import com.example.qrmealtrack.domain.model.ReceiptCategory
 
 data class CategoryUi(
@@ -80,136 +89,135 @@ fun CategoryFilterDropdown(
     onToggle: (FilterType.Categories) -> Unit,
     onClearFilter: () -> Unit,
     modifier: Modifier = Modifier,
-    itemVerticalPadding: Dp = 8.dp
+    itemVerticalPadding: Dp = 8.dp,
+    dropdownWidth: Dp = 180.dp
 ) {
-    val density = LocalDensity.current
     var expanded by remember { mutableStateOf(false) }
     var itemHeight by remember { mutableStateOf(0) }
 
-    val itemHeightDp by remember {
-        derivedStateOf { with(density) { itemHeight.toDp().plus(itemVerticalPadding) } }
-    }
-    val menuWidth = LocalConfiguration.current.screenWidthDp.dp - 32.dp
-
-    val dropdownSelectedBackgroundColor = if (expanded) {
-        MaterialTheme.colorScheme.primaryContainer
-    } else {
-        Color(0xffc1c3ce)
-    }
-    val shape = RoundedCornerShape(999.dp)
-    val backgroundModifier = if (expanded) {
-        Modifier.background(Color.White, shape = shape)
-    } else {
-        Modifier.background(Color.Transparent, shape = shape)
-    }
-
-    Column(modifier = modifier) {
-        // Кнопка открытия дропдауна
-        Box(
+    Box(modifier = modifier) {
+        Button(
+            onClick = { expanded = true },
             modifier = Modifier
-                .border(1.dp, dropdownSelectedBackgroundColor, shape)
-                .then(backgroundModifier)
-                .clickable { expanded = true }
-                .animateContentSize()
+                .height(32.dp)
+                .clip(RoundedCornerShape(10.dp)),
+            shape = RoundedCornerShape(10.dp),
+            contentPadding = PaddingValues(horizontal = 12.dp, vertical = 4.dp),
+            colors = ButtonDefaults.buttonColors(
+                containerColor = Color.Cyan.copy(alpha = 0.15f),
+                contentColor = Color.White
+            ),
+            border = BorderStroke(0.5.dp, Color.Cyan)
         ) {
-            FilterTitle(
-                title = title,
-                filterType = filterType,
-                onClearFilter = onClearFilter
-            )
-        }
+            Row(
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Text(
+                    text = getTitle(title, filterType),
+                    style = MaterialTheme.typography.labelSmall,
+                    fontWeight = FontWeight.Medium
+                )
 
-        Spacer(modifier = Modifier.height(8.dp))
+                if (filterType.getSelectedCount() > 0) {
+                    Spacer(Modifier.width(8.dp))
+
+                    // ✅ Отдельная иконка "очистить"
+                    Icon(
+                        imageVector = Icons.Default.Close,
+                        contentDescription = "Clear filter",
+                        modifier = Modifier
+                            .size(16.dp)
+                            .clickable(
+                                indication = null,
+                                interactionSource = remember { MutableInteractionSource() }
+                            ) {
+                                onClearFilter()
+                            },
+                        tint = Color.White
+                    )
+                }
+
+                Spacer(Modifier.width(8.dp))
+
+                Icon(
+                    imageVector = Icons.Default.ArrowDropDown,
+                    contentDescription = "Expand",
+                    tint = Color.White,
+                    modifier = Modifier.size(18.dp)
+                )
+            }
+        }
 
         DropdownMenu(
             modifier = Modifier
-                .width(menuWidth)
-                .heightIn(
-                    min = itemHeightDp.times(filterType.getSize().coerceAtMost(3)),
-                    max = itemHeightDp.times(filterType.getSize().coerceAtMost(5))
-                ),
+                .requiredWidth(dropdownWidth),
             expanded = expanded,
             onDismissRequest = { expanded = false },
             shape = RoundedCornerShape(10.dp),
-            containerColor = Color.White
+            containerColor = MaterialTheme.colorScheme.surface,
+            offset = DpOffset(x = 0.dp, y = 4.dp)
         ) {
-            filterType.categories.forEach { category ->
-                FilterDropdownItem(
-                    isSelected = category.isSelected,
-                    itemVerticalPadding = itemVerticalPadding,
-                    onClick = {
-                        val updated = FilterType.Categories(
-                            categories = filterType.categories.map {
-                                if (category.name == it.name) it.copy(isSelected = !it.isSelected)
-                                else it
-                            }.toSet()
-                        )
-                        onToggle(updated)
-                    },
-                    modifier = Modifier.onGloballyPositioned {
-                        itemHeight = it.size.height
-                    }
-                ) {
-                    Image(
-                        painter = painterResource(category.resId),
-                        contentDescription = null,
-                        modifier = Modifier.size(24.dp)
-                    )
-                    Spacer(modifier = Modifier.width(8.dp))
-                    Text(
-                        text = category.name,
-                        style = MaterialTheme.typography.bodyMedium.copy(
-                            fontWeight = FontWeight.Medium
-                        ),
-                        color = MaterialTheme.colorScheme.secondary,
-                        modifier = Modifier.weight(1f)
-                    )
-                    if (category.isSelected) {
-                        Icon(
-                            imageVector = Icons.Default.Check,
-                            tint = MaterialTheme.colorScheme.primary,
-                            contentDescription = null
-                        )
-                    }
-                }
-            }
-        }
-    }
-}
-@Composable
-private fun FilterTitle(
-    title: String,
-    filterType: FilterType.Categories,
-    onClearFilter: () -> Unit,
-    modifier: Modifier = Modifier
-) {
-    val paddingStart = if (filterType.categories.none { it.isSelected }) 12.dp else 0.dp
-    val paddingEnd = if (filterType.getSelectedCount() > 0) 8.dp else 12.dp
-
-    Row(
-        modifier = modifier
-            .padding(vertical = 6.dp)
-            .padding(start = paddingStart),
-        verticalAlignment = Alignment.CenterVertically
-    ) {
-        Text(
-            text = getTitle(title, filterType),
-            modifier = Modifier.padding(end = paddingEnd),
-            style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.Medium),
-            color = MaterialTheme.colorScheme.primary
-        )
-        if (filterType.getSelectedCount() > 0) {
+            val scrollState = rememberScrollState()
             Box(
                 modifier = Modifier
-                    .padding(end = 10.dp)
-                    .clickable { onClearFilter() }
+                    .heightIn(max = 200.dp)
+                    .verticalScroll(scrollState)
+                    .verticalColumnScrollbar(scrollState)
             ) {
-                Icon(
-                    imageVector = Icons.Default.Close,
-                    contentDescription = "Clear filter",
-                    tint = MaterialTheme.colorScheme.surfaceTint,
-                    modifier = Modifier.size(18.dp)
-                )
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                ) {
+                    filterType.categories.forEach { category ->
+                        FilterDropdownItem(
+                            isSelected = category.isSelected,
+                            itemVerticalPadding = itemVerticalPadding,
+                            onClick = {
+                                val updated = FilterType.Categories(
+                                    categories = filterType.categories.map {
+                                        if (category.name == it.name) it.copy(isSelected = !it.isSelected)
+                                        else it
+                                    }.toSet()
+                                )
+                                onToggle(updated)
+                            },
+                            modifier = Modifier.onGloballyPositioned {
+                                itemHeight = it.size.height
+                            }
+                        ) {
+                            Image(
+                                painter = painterResource(category.resId),
+                                contentDescription = null,
+                                modifier = Modifier.size(24.dp),
+                                colorFilter = ColorFilter.tint(
+                                    if (category.isSelected)
+                                        MaterialTheme.colorScheme.primary
+                                    else
+                                        MaterialTheme.colorScheme.outline
+                                )
+                            )
+                            Spacer(modifier = Modifier.width(8.dp))
+                            Text(
+                                text = category.name,
+                                style = MaterialTheme.typography.bodyMedium.copy(
+                                    fontWeight = FontWeight.Medium
+                                ),
+                                color = if (category.isSelected)
+                                    MaterialTheme.colorScheme.primary
+                                else
+                                    MaterialTheme.colorScheme.onSurfaceVariant,
+                                modifier = Modifier.weight(1f)
+                            )
+                            if (category.isSelected) {
+                                Icon(
+                                    imageVector = Icons.Default.Check,
+                                    tint = MaterialTheme.colorScheme.primary,
+                                    contentDescription = null
+                                )
+                            }
+                        }
+                    }
+                }
             }
         }
     }
@@ -239,7 +247,7 @@ private fun FilterDropdownItem(
 }
 
 @Composable
-private fun getSelectedBackgroundColor(isSelected: Boolean): Color {
+fun getSelectedBackgroundColor(isSelected: Boolean): Color {
     return if (isSelected) MaterialTheme.colorScheme.surfaceContainer.copy(alpha = 0.05f)
     else Color.Transparent
 }

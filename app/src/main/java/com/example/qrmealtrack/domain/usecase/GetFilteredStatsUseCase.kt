@@ -13,10 +13,7 @@ data class StatsSummary(
     val totalCost: Double,
     val totalWeight: Double,
     val topDish: String?,
-    val priceChanges: Int,
     val topDishCost: Double,
-    val priceUpCount: Int,
-    val priceDownCount: Int
 )
 
 class GetFilteredStatsUseCase @Inject constructor(
@@ -35,27 +32,12 @@ class GetFilteredStatsUseCase @Inject constructor(
                 .filter { it.name == topDish }
                 .sumOf { it.price }
 
-            val priceChangeGroups = allMeals.groupBy { it.name }
-            val priceChanges = priceChangeGroups.count { it.value.map { it.unitPrice }.distinct().size > 1 }
-
-            val priceUpCount = priceChangeGroups.count {
-                val sorted = it.value.sortedBy { it.unitPrice }
-                sorted.size >= 2 && sorted.last().unitPrice > sorted.first().unitPrice
-            }
-
-            val priceDownCount = priceChangeGroups.count {
-                val sorted = it.value.sortedBy { it.unitPrice }
-                sorted.size >= 2 && sorted.last().unitPrice < sorted.first().unitPrice
-            }
 
             StatsSummary(
                 totalCost = calculateTotalCost(filtered),
                 totalWeight = calculateTotalWeight(filtered),
                 topDish = topDish,
                 topDishCost = topDishCost,
-                priceChanges = priceChanges,
-                priceUpCount = priceUpCount,
-                priceDownCount = priceDownCount
             )
         }
     }

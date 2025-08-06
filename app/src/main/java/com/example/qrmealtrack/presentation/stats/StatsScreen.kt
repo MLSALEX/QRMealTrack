@@ -26,6 +26,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -44,9 +45,11 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.navigation.NavHostController
 import com.example.qrmealtrack.R
 import com.example.qrmealtrack.domain.model.PriceChangeItem
 import com.example.qrmealtrack.domain.usecase.StatsSummary
+import com.example.qrmealtrack.navigation.Screen
 import com.example.qrmealtrack.presentation.stats.colors_provider.defaultCategoryColors
 import com.example.qrmealtrack.presentation.stats.components.DonutChartWithCenterButton
 import com.example.qrmealtrack.presentation.stats.components.LabelMode
@@ -54,17 +57,31 @@ import com.example.qrmealtrack.presentation.stats.model.CategoryUiModel
 import com.example.qrmealtrack.presentation.stats.model.format
 import com.example.qrmealtrack.ui.theme.stats.StatsTheme
 import com.example.qrmealtrack.ui.theme.stats.glassGlowBackground
+import kotlinx.coroutines.flow.collectLatest
 
 @Composable
-fun StatsScreen(viewModel: StatsViewModel = hiltViewModel()) {
+fun StatsScreen(
+    viewModel: StatsViewModel = hiltViewModel(),
+    navController: NavHostController
+) {
     val state by viewModel.uiState.collectAsState()
     val labelMode by viewModel.labelMode.collectAsState()
 
+    LaunchedEffect(Unit) {
+        viewModel.uiEvent.collectLatest { event ->
+            when (event) {
+                StatsUiEvent.NavigateToTrends -> {
+                    navController.navigate(Screen.Trends.route)
+                }
+            }
+        }
+    }
     StatsScreenContent(
         state = state,
         labelMode = labelMode,
         onModeChange = viewModel::toggleLabelMode,
-        onFilterSelected = remember { viewModel::onFilterSelected }
+        onFilterSelected = remember { viewModel::onFilterSelected },
+        onTrendsClick = { viewModel.onEvent(StatsUiEvent.NavigateToTrends) }
     )
 }
 
@@ -73,7 +90,8 @@ fun StatsScreenContent(
     state: StatsUiState,
     labelMode: LabelMode,
     onModeChange: () -> Unit,
-    onFilterSelected: (TimeFilter) -> Unit
+    onFilterSelected: (TimeFilter) -> Unit,
+    onTrendsClick: () -> Unit
 ) {
     val model = state.uiModel
     val colors = StatsTheme.colors
@@ -100,10 +118,8 @@ fun StatsScreenContent(
                         cost = model.formattedCost,
                         topDish = model.topDish,
                         topDishCost = model.formattedTopDishCost,
-                        priceChanges = model.priceChanges,
-                        priceUpCount = model.priceUpCount,
-                        priceDownCount = model.priceDownCount,
-                        priceDynamics = model.priceDynamics
+                        priceDynamics = model.priceDynamics,
+                        onTrendsClick = onTrendsClick
                     )
                     Spacer(Modifier.height(chartSpacer))
                 }
@@ -213,9 +229,7 @@ fun StatsGrid(
     cost: String,
     topDish: String,
     topDishCost: String,
-    priceChanges: Int,
-    priceUpCount: Int,
-    priceDownCount: Int,
+    onTrendsClick: () -> Unit,
     priceDynamics: List<PriceChangeItem>
 ) {
     val weightIcon = painterResource(id = R.drawable.kitchen_scale)
@@ -240,22 +254,27 @@ fun StatsGrid(
             Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.spacedBy(12.dp)
         ) {
-            StatCard(
-                title = "Top Dish",
-                value = topDish,
-                subtitle = topDishCost,
-                icon = dishIcon,
-                modifier = Modifier.weight(1f)
-            )
-            StatCard(
-                title = "Price Changes",
-                value = "$priceChanges\n↑ $priceUpCount ↓ $priceDownCount",
-                icon = chartIcon,
-                modifier = Modifier.weight(1f)
-            )
+//            StatCard(
+//                title = "Top Dish",
+//                value = topDish,
+//                subtitle = topDishCost,
+//                icon = dishIcon,
+//                modifier = Modifier.weight(1f)
+//            )
         }
         Spacer(Modifier.height(16.dp))
 //        PriceDynamicsCard(items = priceDynamics)
+        Row(
+            Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.spacedBy(12.dp)
+        ) {
+            TrendsCard(
+                title = "Spending Trends",
+                icon = painterResource(id = R.drawable.chart),
+                modifier = Modifier.weight(1f),
+                onClick = onTrendsClick
+            )
+        }
     }
 }
 
@@ -356,6 +375,44 @@ fun StatCard(
         }
     }
 }
+@Composable
+fun TrendsCard(
+    title: String,
+    icon: Painter,
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier
+) {
+    val colors = StatsTheme.colors
+
+    BaseStatCard(
+        modifier = modifier.height(80.dp),
+        onClick = onClick
+    ) {
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Text(
+                text = title,
+                style = MaterialTheme.typography.bodyLarge,
+                color = colors.textSecondary
+            )
+
+            Icon(
+                painter = icon,
+                contentDescription = null,
+                modifier = Modifier
+                    .size(50.dp)
+                    .padding(end = 4.dp),
+                tint = colors.textSecondary
+            )
+        }
+
+        // Центрируем элемент, чтобы был немного "воздушным"
+        Spacer(modifier = Modifier.weight(1f))
+    }
+}
 
 @Composable
 fun PriceDynamicsCard(
@@ -421,55 +478,52 @@ fun PriceDynamicsCard(
     }
 }
 
-@Preview(showBackground = true)
-@Composable
-private fun StatsScreenPr() {
-    StatsTheme {
-        StatsScreenContent(
-            state = StatsUiState(
-                summary = StatsSummary(
-                    totalWeight = 3.45,
-                    totalCost = 212.75,
-                    topDish = "Pizza Quattro Formaggi",
-                    topDishCost = 89.99,
-                    priceChanges = 7,
-                    priceUpCount = 4,
-                    priceDownCount = 3
-                ),
-                priceDynamics = listOf(
-                    PriceChangeItem("Pasta", true, 3.0),
-                    PriceChangeItem("Burger", false, 1.2)
-                ),
-                selectedFilter = TimeFilter.Week,
-                // ✅ подставим примерные категории для превью
-                categoryUiModels = listOf(
-                    CategoryUiModel(
-                        categoryName = "MEALS",
-                        percent = 50,
-                        labelText = "50% MEALS",
-                        color = defaultCategoryColors()[1],
-                        value = 100
-                    ),
-                    CategoryUiModel(
-                        categoryName = "CLOTHING",
-                        percent = 30,
-                        labelText = "30% CLOTHING",
-                        color = defaultCategoryColors()[2],
-                        value = 60
-                    ),
-                    CategoryUiModel(
-                        categoryName = "BEAUTY",
-                        percent = 20,
-                        labelText = "20% BEAUTY",
-                        color = defaultCategoryColors()[3],
-                        value = 40
-                    )
-                ),
-                totalCategoryValue = 200
-            ),
-            labelMode = LabelMode.BOTH,
-            onModeChange = {},
-            onFilterSelected = {}
-        )
-    }
-}
+//@Preview(showBackground = true)
+//@Composable
+//private fun StatsScreenPr() {
+//    StatsTheme {
+//        StatsScreenContent(
+//            state = StatsUiState(
+//                summary = StatsSummary(
+//                    totalWeight = 3.45,
+//                    totalCost = 212.75,
+//                    topDish = "Pizza Quattro Formaggi",
+//                    topDishCost = 89.99,
+//                ),
+//                priceDynamics = listOf(
+//                    PriceChangeItem("Pasta", true, 3.0),
+//                    PriceChangeItem("Burger", false, 1.2)
+//                ),
+//                selectedFilter = TimeFilter.Week,
+//                // ✅ подставим примерные категории для превью
+//                categoryUiModels = listOf(
+//                    CategoryUiModel(
+//                        categoryName = "MEALS",
+//                        percent = 50,
+//                        labelText = "50% MEALS",
+//                        color = defaultCategoryColors()[1],
+//                        value = 100
+//                    ),
+//                    CategoryUiModel(
+//                        categoryName = "CLOTHING",
+//                        percent = 30,
+//                        labelText = "30% CLOTHING",
+//                        color = defaultCategoryColors()[2],
+//                        value = 60
+//                    ),
+//                    CategoryUiModel(
+//                        categoryName = "BEAUTY",
+//                        percent = 20,
+//                        labelText = "20% BEAUTY",
+//                        color = defaultCategoryColors()[3],
+//                        value = 40
+//                    )
+//                ),
+//                totalCategoryValue = 200
+//            ),
+//            labelMode = LabelMode.BOTH,
+//            onModeChange = {},
+//            onFilterSelected = {}
+//        )
+//    }
+//}

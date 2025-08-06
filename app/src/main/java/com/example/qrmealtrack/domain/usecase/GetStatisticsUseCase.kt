@@ -22,25 +22,12 @@ class GetStatisticsUseCase @Inject constructor(
                 .filter { it.name == topDish }
                 .sumOf { it.price }
 
-            val priceChangeGroups = allMeals.groupBy { it.name }
-            val priceChanges = priceChangeGroups.count { it.value.map { it.unitPrice }.distinct().size > 1 }
-            val priceUpCount = priceChangeGroups.count {
-                val sorted = it.value.sortedBy { it.price }
-                sorted.size >= 2 && sorted.last().price > sorted.first().price
-            }
-            val priceDownCount = priceChangeGroups.count {
-                val sorted = it.value.sortedBy { it.price }
-                sorted.size >= 2 && sorted.last().price < sorted.first().price
-            }
 
             StatsSummary(
                 totalCost = filtered.sumOf { it.total },
                 totalWeight = allMeals.sumOf { it.weight },
                 topDish = topDish,
-                topDishCost = topDishCost,
-                priceChanges = priceChanges,
-                priceUpCount = priceUpCount,
-                priceDownCount = priceDownCount
+                topDishCost = topDishCost
             )
         }
     }

@@ -87,7 +87,7 @@ fun MainScreen(
                 )
             }
             composable(BottomTab.STATS.route) {
-                StatsScreen()
+                StatsScreen(navController = parentNavController)
             }
         }
     }

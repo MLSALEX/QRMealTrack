@@ -8,11 +8,14 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
+import com.example.qrmealtrack.presentation.components.CategoryFilterDropdown
+import com.example.qrmealtrack.presentation.components.FilterType
 
 @Composable
 fun TrendsControlBar(
-    selectedCategory: String = "Meal",
-    onCategorySelected: (String) -> Unit = {},
+    filterState: FilterType.Categories,
+    onFilterChange: (FilterType.Categories) -> Unit,
+    onClearFilter: () -> Unit,
     selectedGranularity: GranularityType,
     onGranularityChange: (GranularityType) -> Unit,
     onCalendarClick: () -> Unit = {}
@@ -23,19 +26,19 @@ fun TrendsControlBar(
             .padding(vertical = 4.dp),
         horizontalArrangement = Arrangement.SpaceBetween
     ) {
-        // ✅ Dropdown категорий
-        CategoryDropdown(
-            selectedCategory = selectedCategory,
-            onCategorySelected = onCategorySelected
+        CategoryFilterDropdown(
+            title = "Categories",
+            filterType = filterState,
+            onToggle = onFilterChange,
+            onClearFilter = onClearFilter,
+            modifier = Modifier.weight(1f)
         )
 
-        // ✅ Переключатель гранулярности
         NeonSegmentedButton(
             selected = selectedGranularity,
             onGranularityChange = onGranularityChange,
         )
 
-        // ✅ Иконка календаря
         IconButton(onClick = onCalendarClick) {
             Icon(
                 imageVector = Icons.Default.DateRange,

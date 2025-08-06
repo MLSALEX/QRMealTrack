@@ -1,18 +1,30 @@
 package com.example.qrmealtrack.presentation.trends
 
 import android.app.Activity
-import android.content.res.Configuration
+import android.content.pm.ActivityInfo
 import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Text
-import androidx.compose.runtime.*
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.platform.LocalConfiguration
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.example.qrmealtrack.presentation.components.AppScaffold
+import com.example.qrmealtrack.presentation.components.FilterType
+import com.example.qrmealtrack.presentation.components.getDefaultCategories
 import com.example.qrmealtrack.presentation.components.withScaffoldPadding
 import com.example.qrmealtrack.presentation.trends.components.GranularityType
 import com.example.qrmealtrack.presentation.trends.components.LineChart
@@ -20,8 +32,7 @@ import com.example.qrmealtrack.presentation.trends.components.TrendsControlBar
 import com.example.qrmealtrack.presentation.trends.mock.mockDayPoints
 import com.example.qrmealtrack.presentation.trends.mock.mockMonthPoints
 import com.example.qrmealtrack.presentation.trends.mock.mockWeekPoints
-import androidx.compose.ui.platform.LocalContext
-import android.content.pm.ActivityInfo
+
 
 @Composable
 fun TrendsScreen() {
@@ -56,6 +67,7 @@ fun TrendsLandscapeContent(modifier: Modifier = Modifier) {
             GranularityType.MONTH -> mockMonthPoints
         }
     }
+    var filterState by remember { mutableStateOf(getDefaultCategories()) }
 
     Column(
         modifier = modifier
@@ -63,9 +75,14 @@ fun TrendsLandscapeContent(modifier: Modifier = Modifier) {
             .background(Color(0xFF050A12))
             .padding(16.dp)
     ) {
-            TrendsControlBar(
-            selectedCategory = "Meal",
-            onCategorySelected = { /* TODO: handle category change */ },
+        TrendsControlBar(
+            filterState = filterState,
+            onFilterChange = { filterState = it },
+            onClearFilter = {
+                filterState = FilterType.Categories(
+                    filterState.categories.map { it.copy(isSelected = false) }.toSet()
+                )
+            },
             selectedGranularity = selectedGranularity,
             onGranularityChange = { selectedGranularity = it },
             onCalendarClick = { /* TODO: open date picker */ }
