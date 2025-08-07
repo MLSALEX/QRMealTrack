@@ -1,28 +1,51 @@
 package com.example.qrmealtrack.domain.usecase
 
+import com.example.qrmealtrack.domain.model.ChartPoint
+import com.example.qrmealtrack.domain.repository.ReceiptRepository
 import com.example.qrmealtrack.presentation.trends.components.GranularityType
-import com.example.qrmealtrack.presentation.trends.mock.ChartDataSource
-import com.example.qrmealtrack.presentation.trends.model.UiChartPoint
-import com.example.qrmealtrack.presentation.trends.model.mapper.toUiChartPoint
-import com.example.qrmealtrack.presentation.utils.CategoryColorProvider
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.map
+import java.time.DayOfWeek
+import java.time.Instant
+import java.time.LocalDate
+import java.time.ZoneId
 import javax.inject.Inject
 
 class GetFilteredChartPointsUseCase @Inject constructor(
-    private val chartDataSource: ChartDataSource,
-    private val categoryColorProvider: CategoryColorProvider
+    private val repository: ReceiptRepository
 ) {
     operator fun invoke(
         granularity: GranularityType,
         selectedKeys: List<String>
-    ): Map<String, List<UiChartPoint>> {
-        val allPoints = chartDataSource.getPoints(granularity)
+    ): Flow<Map<String, List<ChartPoint>>> {
+        return repository.getAllReceipts()
+            .map { receipts ->
+                receipts
+                    .filter { it.category.key in selectedKeys }
+                    .map {
+                        val localDate = it.dateTime.toLocalDateByGranularity(granularity)
 
-        return allPoints
-            .filter { it.category in selectedKeys }
-            .groupBy { it.category }
-            .mapValues { (category, points) ->
-                val color = categoryColorProvider.getColorForCategory(category)
-                points.map { it.toUiChartPoint(color) }
+                        ChartPoint(
+                            category = it.category.key,
+                            value = it.total.toFloat(),
+                            localDate = localDate,
+                            originalDate = it.dateTime
+                        )
+                    }
+                    .groupBy { it.category }
+                    .mapValues { (_, points) ->
+                        points.sortedBy { it.originalDate }
+                    }
             }
     }
 }
+
+fun Long.toLocalDateByGranularity(granularity: GranularityType): LocalDate {
+    val date = Instant.ofEpochMilli(this).atZone(ZoneId.systemDefault()).toLocalDate()
+    return when (granularity) {
+        GranularityType.DAY -> date
+        GranularityType.WEEK -> date.with(DayOfWeek.MONDAY)
+        GranularityType.MONTH -> date.withDayOfMonth(1)
+    }
+}
+

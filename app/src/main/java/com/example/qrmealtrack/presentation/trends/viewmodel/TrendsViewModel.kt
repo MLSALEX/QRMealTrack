@@ -6,30 +6,45 @@ import com.example.qrmealtrack.domain.usecase.GetFilteredChartPointsUseCase
 import com.example.qrmealtrack.presentation.components.FilterType
 import com.example.qrmealtrack.presentation.components.getDefaultCategories
 import com.example.qrmealtrack.presentation.trends.components.GranularityType
-import com.example.qrmealtrack.presentation.trends.model.UiChartPoint
+import com.example.qrmealtrack.presentation.trends.model.mapper.ChartPointUiMapper
 import com.example.qrmealtrack.presentation.trends.state.TrendsUiState
 import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.coroutines.flow.*
+import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.flatMapLatest
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.flow.update
 import javax.inject.Inject
 
 @HiltViewModel
 class TrendsViewModel @Inject constructor(
-    private val getFilteredPointsUseCase: GetFilteredChartPointsUseCase
+    private val getFilteredPointsUseCase: GetFilteredChartPointsUseCase,
+    private val chartPointUiMapper: ChartPointUiMapper
 ) : ViewModel() {
 
     private val _granularity = MutableStateFlow(GranularityType.WEEK)
     private val _filter = MutableStateFlow(getDefaultCategories())
 
-
+    @OptIn(ExperimentalCoroutinesApi::class)
     val uiState: StateFlow<TrendsUiState> = combine(_granularity, _filter) { granularity, filter ->
+        granularity to filter
+    }.flatMapLatest { (granularity, filter) ->
         val selectedKeys = filter.getSelectedKeys()
-        val groupedPoints = getFilteredPointsUseCase(granularity, selectedKeys)
 
-        TrendsUiState(
-            filter = filter,
-            granularity = granularity,
-            groupedPoints = groupedPoints
-        )
+        getFilteredPointsUseCase(granularity, selectedKeys)
+            .map { domainPoints ->
+                val uiPoints = chartPointUiMapper.map(domainPoints, granularity)
+
+                TrendsUiState(
+                    filter = filter,
+                    granularity = granularity,
+                    groupedPoints = uiPoints
+                )
+            }
     }.stateIn(
         scope = viewModelScope,
         started = SharingStarted.WhileSubscribed(5000),
@@ -39,7 +54,6 @@ class TrendsViewModel @Inject constructor(
             groupedPoints = emptyMap()
         )
     )
-
 
     fun onFilterChange(newFilter: FilterType.Categories) {
         _filter.value = newFilter
@@ -55,3 +69,4 @@ class TrendsViewModel @Inject constructor(
         }
     }
 }
+
