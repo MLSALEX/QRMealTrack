@@ -62,17 +62,7 @@ It scans **Moldovan QR codes from fiscal receipts**, automatically extracts rece
 
 ## 📸 Screenshots
 
-https://github.com/user-attachments/assets/db38fd7c-73ba-408d-a6fc-15f91bcd2b2f
-
-https://github.com/user-attachments/assets/404fef62-63ac-409d-871c-b641546ded7a
-
-https://github.com/user-attachments/assets/00302a9e-f1b0-4d2d-8425-7f42d2602bbc
-
-https://github.com/user-attachments/assets/781ace21-754c-420d-8c9b-588227f36677
-
-https://github.com/user-attachments/assets/f25b7a5a-203e-46d0-843e-b7f42fcf5985
-
-
+https://github.com/user-attachments/assets/db38fd7c-73ba-408d-a6fc-15f91bcd2b2f  https://github.com/user-attachments/assets/404fef62-63ac-409d-871c-b641546ded7a  https://github.com/user-attachments/assets/00302a9e-f1b0-4d2d-8425-7f42d2602bbc  https://github.com/user-attachments/assets/781ace21-754c-420d-8c9b-588227f36677  https://github.com/user-attachments/assets/f25b7a5a-203e-46d0-843e-b7f42fcf5985
 
 ---
 
