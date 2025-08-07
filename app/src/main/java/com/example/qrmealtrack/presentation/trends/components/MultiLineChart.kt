@@ -114,7 +114,7 @@ fun MultiLineChart(
             val selectedPoint = groupedPoints[selectedCategory]?.getOrNull(selectedIndex)
             if (selectedPoint != null) {
                 val tooltipWidth = 120
-                val tooltipHeight = 90
+                val tooltipHeight = 250
                 val x = selectedOffset.x.roundToInt()
                 val y = selectedOffset.y.roundToInt()
 
@@ -122,7 +122,7 @@ fun MultiLineChart(
 
                 val xOffset = (x - tooltipWidth / 2).coerceIn(0, (canvasSize.width - tooltipWidth).toInt())
                 val yOffset = if (tooltipAbove) {
-                    (y - tooltipHeight - 16).coerceAtLeast(0)
+                    (y - tooltipHeight).coerceAtLeast(0)
                 } else {
                     (y + 16).coerceAtMost((canvasSize.height - tooltipHeight).toInt())
                 }
