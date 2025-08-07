@@ -82,10 +82,10 @@ fun MultiLineChart(
 
                     val category = closestCategory
                     val index = closestIndex
-                    val offset = closestPointOffset
+                    val tappedOffset  = closestPointOffset
 
-                    if (category != null && index != null && offset != null) {
-                        onPointTap(category, index, offset)
+                    if (category != null && index != null && tappedOffset!= null) {
+                        onPointTap(category, index, tappedOffset )
                     }
                 }
             }
@@ -109,7 +109,6 @@ fun MultiLineChart(
             )
         }
 
-        // ✅ Рисуем тултип поверх всего
         if (selectedCategory != null && selectedIndex != null && selectedOffset != null) {
             val selectedPoint = groupedPoints[selectedCategory]?.getOrNull(selectedIndex)
             if (selectedPoint != null) {
