@@ -24,6 +24,7 @@ class ChartPointUiMapper @Inject constructor(
                 UiChartPoint(
                     category = category.replaceFirstChar { it.uppercaseChar() },
                     value = it.value,
+                    rawDate = it.localDate, // 🆕 для сортировки по времени
                     dateLabel = it.localDate.formatLabel(granularity),
                     color = color
                 )

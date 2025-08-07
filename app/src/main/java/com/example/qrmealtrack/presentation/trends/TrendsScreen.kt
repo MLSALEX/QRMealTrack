@@ -10,12 +10,10 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateMapOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -23,21 +21,16 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.example.qrmealtrack.presentation.components.AppScaffold
 import com.example.qrmealtrack.presentation.components.FilterType
-import com.example.qrmealtrack.presentation.components.getDefaultCategories
 import com.example.qrmealtrack.presentation.components.withScaffoldPadding
 import com.example.qrmealtrack.presentation.trends.components.GranularityType
-import com.example.qrmealtrack.presentation.trends.components.LineChart
 import com.example.qrmealtrack.presentation.trends.components.MultiLineChart
 import com.example.qrmealtrack.presentation.trends.components.TrendsControlBar
-import com.example.qrmealtrack.presentation.trends.model.UiChartPoint
 import com.example.qrmealtrack.presentation.trends.state.TrendsUiState
 import com.example.qrmealtrack.presentation.trends.viewmodel.TrendsViewModel
-import com.example.qrmealtrack.presentation.utils.CategoryColorProvider
 
 @Composable
 fun TrendsScreen(viewModel: TrendsViewModel = hiltViewModel()) {
@@ -117,47 +110,4 @@ fun TrendsLandscapeContent(
     }
 }
 
-@Preview(
-    showBackground = true,
-    backgroundColor = 0xFF050A12,
-    widthDp = 800,
-    heightDp = 480
-)
-@Composable
-fun TrendsLandscapePreview() {
-    val mockCategories = getDefaultCategories()
-    val selectedCategories = mockCategories.categories.map {
-        if (it.key == "meals" || it.key == "transport") it.copy(isSelected = true) else it
-    }.toSet()
-
-    val filter = FilterType.Categories(selectedCategories)
-    val colorProvider = CategoryColorProvider()
-
-    val points = listOf(
-        UiChartPoint("meals", 120f, "Aug 01", colorProvider.getColorForCategory("meals")),
-        UiChartPoint("transport", 90f, "Aug 01", colorProvider.getColorForCategory("transport")),
-        UiChartPoint("meals", 140f, "Aug 02", colorProvider.getColorForCategory("meals")),
-        UiChartPoint("transport", 80f, "Aug 02", colorProvider.getColorForCategory("transport")),
-        UiChartPoint("meals", 160f, "Aug 03", colorProvider.getColorForCategory("meals")),
-        UiChartPoint("transport", 110f, "Aug 03", colorProvider.getColorForCategory("transport"))
-    )
-
-    val groupedPoints = points.groupBy { it.category }
-
-    val mockState = TrendsUiState(
-        filter = filter,
-        granularity = GranularityType.DAY,
-        groupedPoints = groupedPoints
-    )
-
-    MaterialTheme {
-        TrendsLandscapeContent(
-            state = mockState,
-            modifier = Modifier.fillMaxSize(),
-            onFilterChange = {},
-            onClearFilter = {},
-            onGranularityChange = {}
-        )
-    }
-}
 

@@ -22,14 +22,14 @@ class GetFilteredChartPointsUseCase @Inject constructor(
             .map { receipts ->
                 receipts
                     .filter { it.category.key in selectedKeys }
-                    .map {
-                        val localDate = it.dateTime.toLocalDateByGranularity(granularity)
-
+                    .groupBy { it.category.key to it.dateTime.toLocalDateByGranularity(granularity) }
+                    .map { (keyDate, group) ->
+                        val (category, localDate) = keyDate
                         ChartPoint(
-                            category = it.category.key,
-                            value = it.total.toFloat(),
+                            category = category,
+                            value = group.sumOf { it.total }.toFloat(),
                             localDate = localDate,
-                            originalDate = it.dateTime
+                            originalDate = group.minBy { it.dateTime }.dateTime
                         )
                     }
                     .groupBy { it.category }

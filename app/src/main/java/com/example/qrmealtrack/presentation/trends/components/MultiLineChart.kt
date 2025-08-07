@@ -44,9 +44,9 @@ fun MultiLineChart(
     modifier: Modifier = Modifier
 ) {
     val allPoints = groupedPoints.values.flatten()
+
     val needScroll = allPoints.size > 20
     val scrollState = rememberScrollState()
-
     var canvasSize by remember { mutableStateOf(Size.Zero) }
 
     val canvasModifier = if (needScroll) {
@@ -57,36 +57,41 @@ fun MultiLineChart(
         modifier.onSizeChanged { canvasSize = it.toSize() }
     }
 
+    // 🆕 Готовим ось времени и общие границы
+    val uniqueDates = allPoints.map { it.rawDate }.distinct().sorted() // по LocalDate
+    val dateLabelMap = allPoints.associate { it.rawDate to it.dateLabel } // подписи
+
+    val maxValue = allPoints.maxOfOrNull { it.value } ?: 1f
+    val minValue = allPoints.minOfOrNull { it.value } ?: 0f
+
     Box(
         modifier = canvasModifier
             .pointerInput(groupedPoints, canvasSize) {
                 detectTapGestures { offset ->
-                    var closestCategory: String? = null
-                    var closestIndex: Int? = null
-                    var closestPointOffset: Offset? = null
+                    var bestMatch: Triple<String, Int, Offset>? = null
                     var minDistance = Float.MAX_VALUE
 
                     groupedPoints.forEach { (category, points) ->
-                        val result = calculateNearestPoint(offset, points, canvasSize)
+                        val result = calculateNearestPoint(
+                            offset,
+                            points,
+                            canvasSize,
+                            uniqueDates,
+                            minValue,
+                            maxValue
+                        )
                         if (result != null) {
                             val (index, pointOffset) = result
                             val distance = (offset - pointOffset).getDistance()
                             if (distance < minDistance) {
                                 minDistance = distance
-                                closestCategory = category
-                                closestIndex = index
-                                closestPointOffset = pointOffset
+                                bestMatch = Triple(category, index, pointOffset)
                             }
                         }
                     }
 
-                    val category = closestCategory
-                    val index = closestIndex
-                    val tappedOffset  = closestPointOffset
-
-                    if (category != null && index != null && tappedOffset!= null) {
-                        onPointTap(category, index, tappedOffset )
-                    }
+                    val (category, index, pointOffset) = bestMatch ?: return@detectTapGestures
+                    onPointTap(category, index, pointOffset)
                 }
             }
     ) {
@@ -97,13 +102,15 @@ fun MultiLineChart(
                     if (needScroll) it.width((allPoints.size * 60).dp) else it
                 }
         ) {
-            val horizontalCells = allPoints.size + 1
-            drawNeonGrid(horizontalCells = horizontalCells)
+            drawNeonGrid(horizontalCells = uniqueDates.size + 1)
         }
 
         groupedPoints.forEach { (category, points) ->
             LineChart(
                 points = points,
+                uniqueDates = uniqueDates,
+                minValue = minValue,
+                maxValue = maxValue,
                 selectedIndex = if (category == selectedCategory) selectedIndex else null,
                 modifier = Modifier.matchParentSize()
             )

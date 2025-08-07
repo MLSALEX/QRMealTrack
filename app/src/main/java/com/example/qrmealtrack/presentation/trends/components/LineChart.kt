@@ -8,10 +8,14 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
 import com.example.qrmealtrack.presentation.trends.model.UiChartPoint
+import java.time.LocalDate
 
 @Composable
 fun LineChart(
     points: List<UiChartPoint>,
+    uniqueDates: List<LocalDate>,
+    minValue: Float,
+    maxValue: Float,
     selectedIndex: Int? = null,
     modifier: Modifier = Modifier
 ) {
@@ -19,13 +23,12 @@ fun LineChart(
         Canvas(modifier = Modifier.fillMaxSize()) {
             if (points.isEmpty()) return@Canvas
 
-            val spacing = size.width / (points.size + 1)
-            val maxValue = points.maxOf { it.value }
-            val minValue = points.minOf { it.value }
-            val heightRange = maxValue - minValue
+            val spacing = size.width / (uniqueDates.size + 1)
+            val heightRange = (maxValue - minValue).takeIf { it != 0f } ?: 1f
 
-            val coordinates = points.mapIndexed { i, point ->
-                val x = spacing * (i + 1)
+            val coordinates = points.map { point ->
+                val index = uniqueDates.indexOf(point.rawDate)
+                val x = spacing * (index + 1)
                 val y = size.height - (point.value - minValue) / heightRange * size.height
                 Offset(x, y)
             }
@@ -49,5 +52,6 @@ fun LineChart(
         }
     }
 }
+
 
 
