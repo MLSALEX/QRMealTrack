@@ -43,7 +43,8 @@ fun TrendsScreen(viewModel: TrendsViewModel = hiltViewModel()) {
             state = state,
             onFilterChange = viewModel::onFilterChange,
             onClearFilter = viewModel::clearFilter,
-            onGranularityChange = viewModel::onGranularityChange
+            onGranularityChange = viewModel::onGranularityChange,
+            onToggleLogScale = viewModel::toggleLogScale
         )
     }
 }
@@ -66,7 +67,8 @@ fun TrendsLandscapeContent(
     state: TrendsUiState,
     onFilterChange: (FilterType.Categories) -> Unit,
     onClearFilter: () -> Unit,
-    onGranularityChange: (GranularityType) -> Unit
+    onGranularityChange: (GranularityType) -> Unit,
+    onToggleLogScale: () -> Unit
 ) {
     var selectedCategory by remember { mutableStateOf<String?>(null) }
     var selectedIndex by remember { mutableStateOf<Int?>(null) }
@@ -84,7 +86,9 @@ fun TrendsLandscapeContent(
             onClearFilter = onClearFilter,
             selectedGranularity = state.granularity,
             onGranularityChange = onGranularityChange,
-            onCalendarClick = { /* TODO */ }
+            onCalendarClick = { /* TODO */ },
+            useLogScale = state.useLogScale,
+            onToggleLogScale = onToggleLogScale
         )
 
         Spacer(Modifier.height(12.dp))
@@ -104,6 +108,7 @@ fun TrendsLandscapeContent(
                     selectedIndex = index
                     selectedOffset = offset
                 },
+                useLogScale = state.useLogScale,
                 modifier = Modifier.fillMaxSize()
             )
         }

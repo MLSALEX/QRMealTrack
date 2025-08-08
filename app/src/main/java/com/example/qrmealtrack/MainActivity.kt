@@ -11,6 +11,7 @@ import androidx.core.content.ContextCompat
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import androidx.navigation.compose.rememberNavController
 import com.example.qrmealtrack.navigation.NavGraph
+import com.example.qrmealtrack.presentation.trends.TrendsScreen
 import com.example.qrmealtrack.ui.theme.QRMealTrackTheme
 import com.example.qrmealtrack.ui.utils.enableEdgeToEdge
 import dagger.hilt.android.AndroidEntryPoint
@@ -39,6 +40,8 @@ class MainActivity : ComponentActivity() {
                     isLoading = false
                 }
                 NavGraph(navController)
+
+//                TrendsScreen()
             }
         }
     }

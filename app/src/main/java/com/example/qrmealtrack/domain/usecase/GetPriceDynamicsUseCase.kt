@@ -19,7 +19,7 @@ class GetPriceDynamicsUseCase(
                     }
                     .groupBy { it.first } // по блюду
                     .mapNotNull { (dish, priceList) ->
-                        val sorted = priceList.sortedBy { it.second } // сортировка по времени
+                        val sorted = priceList.sortedBy { it.second }
                         if (sorted.size < 2) return@mapNotNull null
 
                         val oldPrice = sorted.first().third

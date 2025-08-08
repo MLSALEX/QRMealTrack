@@ -4,6 +4,7 @@ import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
 import com.example.qrmealtrack.presentation.trends.model.UiChartPoint
 import java.time.LocalDate
+import kotlin.math.ln
 
 fun calculateNearestPoint(
     tapOffset: Offset,
@@ -11,7 +12,8 @@ fun calculateNearestPoint(
     canvasSize: Size,
     uniqueDates: List<LocalDate>,
     minValue: Float,
-    maxValue: Float
+    maxValue: Float,
+    useLogScale: Boolean
 ): Pair<Int, Offset>? {
     if (points.isEmpty()) return null
 
@@ -24,10 +26,12 @@ fun calculateNearestPoint(
 
     points.forEachIndexed { i, point ->
         val index = uniqueDates.indexOf(point.rawDate)
-        if (index == -1) return@forEachIndexed // защита
+        if (index == -1) return@forEachIndexed
+
+        val transformedValue = if (useLogScale) ln(point.value + 1f) else point.value
 
         val x = spacing * (index + 1)
-        val y = canvasSize.height - (point.value - minValue) / heightRange * canvasSize.height
+        val y = canvasSize.height - (transformedValue - minValue) / heightRange * canvasSize.height
         val pointOffset = Offset(x, y)
         val distance = (tapOffset - pointOffset).getDistance()
 

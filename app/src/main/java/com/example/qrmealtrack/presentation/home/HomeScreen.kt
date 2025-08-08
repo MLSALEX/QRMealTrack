@@ -74,7 +74,6 @@ fun HomeScreen(
 
     var receiptToDelete by remember { mutableStateOf<ReceiptUiModel?>(null) }
 
-    // Подтверждение удаления
     receiptToDelete?.let { receipt ->
         AlertDialog(
             onDismissRequest = { receiptToDelete = null },
@@ -117,14 +116,14 @@ fun HomeScreen(
             onDeleteRequest = { receiptToDelete = it },
             onToggle = { listViewModel.onAction(ReceiptUiAction.ToggleReceipt(it)) },
             onCategoryClick = { clickedReceipt ->
-                receiptForCategory = clickedReceipt // ✅ запоминаем чек
+                receiptForCategory = clickedReceipt
             }
         )
         receiptForCategory?.let { receipt ->
             ModalBottomSheet(
-                onDismissRequest = { receiptForCategory = null }, // закрыть, если нажали вне листа
+                onDismissRequest = { receiptForCategory = null },
                 sheetState = sheetState,
-                containerColor = MaterialTheme.colorScheme.primaryContainer,  // цвет фона шиита
+                containerColor = MaterialTheme.colorScheme.primaryContainer,
                 contentColor = MaterialTheme.colorScheme.onPrimaryContainer
             ) {
                 CategorySelectionSheet(
@@ -141,14 +140,12 @@ fun HomeScreen(
                         )
                     },
                     onSelect = { selectedUi ->
-                        // при выборе сохраняем категорию
                         listViewModel.onAction(
                             ReceiptUiAction.ChangeCategory(
                                 receipt.id,
                                 selectedUi
                             )
                         )
-                        // и закрываем лист
                         receiptForCategory = null
                     }
                 )
@@ -248,11 +245,11 @@ fun ReceiptCard(
     Box(
         modifier = Modifier
             .fillMaxWidth()
-            .clip(RoundedCornerShape(20.dp))  // ✅ обрезаем всё содержимое и ripple по углам
+            .clip(RoundedCornerShape(20.dp))
             .receiptCardGlowBackground(
                 glowPrimary = Color(0xFF00FFB0),
                 glowSecondary = Color(0xFF00D4FF),
-                backgroundColor = Color(0xCC121C2E), // чуть менее прозрачный фон
+                backgroundColor = Color(0xCC121C2E),
                 glowAlpha = 0.5f
             )
             .combinedClickable(
@@ -278,7 +275,6 @@ fun ReceiptCard(
                             .size(40.dp)
                             .clip(RoundedCornerShape(12.dp))
                             .clickable {
-                                // Открыть BottomSheet с категориями
                                 onCategoryClick(receipt)
                             }
                             .padding(end = 8.dp),

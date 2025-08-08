@@ -1,8 +1,5 @@
 package com.example.qrmealtrack.domain.model
 
-import androidx.annotation.DrawableRes
-import com.example.qrmealtrack.R
-
 enum class ReceiptCategory(val key: String) {
     NO_CATEGORY("no_category"),
     MEALS("meals"),

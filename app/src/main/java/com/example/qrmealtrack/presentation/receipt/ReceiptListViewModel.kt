@@ -3,7 +3,6 @@ package com.example.qrmealtrack.presentation.receipt
 import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.example.qrmealtrack.data.local.ReceiptEntity
 import com.example.qrmealtrack.domain.model.Receipt
 import com.example.qrmealtrack.domain.model.ReceiptCategory
 import com.example.qrmealtrack.domain.repository.ReceiptRepository
@@ -45,7 +44,6 @@ class ReceiptListViewModel @Inject constructor(
                     list.map { uiMapper.map(it) }
                 }
 
-                // 2. Сортировка по убыванию даты (ключ "dd.MM.yyyy")
                 val sortedReceipts = mapped.toSortedMap(compareByDescending { dayStr ->
                     dateFormatter.parseDay(dayStr)?.time ?: 0L
                 })
@@ -54,7 +52,6 @@ class ReceiptListViewModel @Inject constructor(
                     it.copy(
                         receiptsByDay = sortedReceipts,
                         totalsByDay = result.totalsByDay,
-                        // если хочешь посчитать stats:
                         statistics = calculateStats(result.receiptsByDay.values.flatten())
                     )
                 }
@@ -114,8 +111,6 @@ class ReceiptListViewModel @Inject constructor(
         val minPrice = prices.minOrNull() ?: 0.0
         val maxPrice = prices.maxOrNull() ?: 0.0
         val avgPrice = prices.average()
-
-        // тут добавляешь расчёты по дням/неделям/месяцам
 
         return Statistics(minPrice, maxPrice, avgPrice /* avgPerDay, avgPerWeek, avgPerMonth */)
     }

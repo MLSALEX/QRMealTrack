@@ -3,7 +3,6 @@ package com.example.qrmealtrack.presentation.model
 import com.example.qrmealtrack.R
 import com.example.qrmealtrack.domain.model.Receipt
 import com.example.qrmealtrack.domain.model.ReceiptCategory
-import com.example.qrmealtrack.presentation.components.CategoryUi
 import com.example.qrmealtrack.presentation.utils.DateFormatter
 import javax.inject.Inject
 

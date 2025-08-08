@@ -32,6 +32,7 @@ import kotlin.collections.component1
 import kotlin.collections.component2
 import kotlin.collections.flatten
 import kotlin.collections.forEach
+import kotlin.math.ln
 import kotlin.math.roundToInt
 
 @Composable
@@ -41,6 +42,7 @@ fun MultiLineChart(
     selectedIndex: Int?,
     selectedOffset: Offset?,
     onPointTap: (String, Int, Offset) -> Unit,
+    useLogScale: Boolean,
     modifier: Modifier = Modifier
 ) {
     val allPoints = groupedPoints.values.flatten()
@@ -57,12 +59,16 @@ fun MultiLineChart(
         modifier.onSizeChanged { canvasSize = it.toSize() }
     }
 
-    // 🆕 Готовим ось времени и общие границы
-    val uniqueDates = allPoints.map { it.rawDate }.distinct().sorted() // по LocalDate
-    val dateLabelMap = allPoints.associate { it.rawDate to it.dateLabel } // подписи
+    val uniqueDates = allPoints.map { it.rawDate }.distinct().sorted()
 
-    val maxValue = allPoints.maxOfOrNull { it.value } ?: 1f
-    val minValue = allPoints.minOfOrNull { it.value } ?: 0f
+    val transformedValues = if (useLogScale) {
+        allPoints.map { ln(it.value + 1f) }
+    } else {
+        allPoints.map { it.value }
+    }
+
+    val maxValue = transformedValues.maxOrNull() ?: 1f
+    val minValue = transformedValues.minOrNull() ?: 0f
 
     Box(
         modifier = canvasModifier
@@ -78,7 +84,8 @@ fun MultiLineChart(
                             canvasSize,
                             uniqueDates,
                             minValue,
-                            maxValue
+                            maxValue,
+                            useLogScale
                         )
                         if (result != null) {
                             val (index, pointOffset) = result
@@ -112,6 +119,7 @@ fun MultiLineChart(
                 minValue = minValue,
                 maxValue = maxValue,
                 selectedIndex = if (category == selectedCategory) selectedIndex else null,
+                useLogScale = useLogScale,
                 modifier = Modifier.matchParentSize()
             )
         }

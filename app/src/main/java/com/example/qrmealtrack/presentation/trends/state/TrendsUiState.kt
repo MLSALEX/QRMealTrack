@@ -7,5 +7,6 @@ import com.example.qrmealtrack.presentation.trends.model.UiChartPoint
 data class TrendsUiState(
     val filter: FilterType.Categories,
     val granularity: GranularityType,
-    val groupedPoints: Map<String, List<UiChartPoint>>
+    val groupedPoints: Map<String, List<UiChartPoint>>,
+    val useLogScale: Boolean = false
 )

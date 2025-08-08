@@ -60,7 +60,6 @@ fun ReceiptFromWebScreen(
                     settings.javaScriptEnabled = true
                     webViewClient = object : WebViewClient() {
                         override fun onPageFinished(view: WebView?, url: String?) {
-                            // ✅ Извлекаем всё содержимое <body> как текст
                             evaluateJavascript(
                                 "(function() { return document.body.innerText; })();"
                             ) { value ->
@@ -78,7 +77,6 @@ fun ReceiptFromWebScreen(
                                         if (parsed != null) {
                                             viewModel.onAction(ReceiptUiAction.SaveParsed(parsed))
                                             Toast.makeText(context, "Сохранено ${parsed.items.size} блюд, "
-//                                                    "всего: ${parsed.total} MDL"
                                                 , Toast.LENGTH_SHORT).show()
                                             onDone()
                                         } else {

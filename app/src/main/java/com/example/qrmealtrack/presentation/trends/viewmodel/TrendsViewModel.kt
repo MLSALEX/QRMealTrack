@@ -28,11 +28,16 @@ class TrendsViewModel @Inject constructor(
 
     private val _granularity = MutableStateFlow(GranularityType.WEEK)
     private val _filter = MutableStateFlow(getDefaultCategories())
+    private val _useLogScale = MutableStateFlow(false)
 
     @OptIn(ExperimentalCoroutinesApi::class)
-    val uiState: StateFlow<TrendsUiState> = combine(_granularity, _filter) { granularity, filter ->
-        granularity to filter
-    }.flatMapLatest { (granularity, filter) ->
+    val uiState: StateFlow<TrendsUiState> = combine(
+        _granularity,
+        _filter,
+        _useLogScale
+    ) { granularity, filter, useLogScale ->
+        Triple(granularity, filter, useLogScale)
+    }.flatMapLatest { (granularity, filter, useLogScale) ->
         val selectedKeys = filter.getSelectedKeys()
 
         getFilteredPointsUseCase(granularity, selectedKeys)
@@ -42,7 +47,8 @@ class TrendsViewModel @Inject constructor(
                 TrendsUiState(
                     filter = filter,
                     granularity = granularity,
-                    groupedPoints = uiPoints
+                    groupedPoints = uiPoints,
+                    useLogScale = useLogScale
                 )
             }
     }.stateIn(
@@ -51,9 +57,12 @@ class TrendsViewModel @Inject constructor(
         initialValue = TrendsUiState(
             filter = getDefaultCategories(),
             granularity = GranularityType.WEEK,
-            groupedPoints = emptyMap()
+            groupedPoints = emptyMap(),
+            useLogScale = false
         )
     )
+
+
 
     fun onFilterChange(newFilter: FilterType.Categories) {
         _filter.value = newFilter
@@ -67,6 +76,10 @@ class TrendsViewModel @Inject constructor(
         _filter.update { old ->
             FilterType.Categories(old.categories.map { it.copy(isSelected = false) }.toSet())
         }
+    }
+
+    fun toggleLogScale() {
+        _useLogScale.update { !it }
     }
 }
 

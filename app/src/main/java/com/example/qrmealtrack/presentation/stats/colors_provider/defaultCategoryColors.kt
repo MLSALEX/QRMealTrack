@@ -10,11 +10,3 @@ fun defaultCategoryColors(): List<Color> = listOf(
     Color(0xFFFF9800), // TRANSPORT
     Color(0xFF4CAF50)  // GROCERIES
 )
-
-fun Color.toAndroidColor(): Int =
-    android.graphics.Color.argb(
-        (alpha * 255).toInt(),
-        (red * 255).toInt(),
-        (green * 255).toInt(),
-        (blue * 255).toInt()
-    )

@@ -1,8 +1,6 @@
 package com.example.qrmealtrack.data.repository
 
-import android.util.Log
 import com.example.qrmealtrack.data.local.ReceiptDao
-import com.example.qrmealtrack.data.local.ReceiptEntity
 import com.example.qrmealtrack.data.mapper.toDomain
 import com.example.qrmealtrack.data.mapper.toEntity
 import com.example.qrmealtrack.domain.model.Receipt

@@ -48,9 +48,6 @@ fun drawLabelOnArc(
     }
 }
 
-/**
- * Перевод полярных координат в декартовые (x, y)
- */
 fun polarToCartesian(
     center: Offset,
     radius: Float,
@@ -62,16 +59,10 @@ fun polarToCartesian(
     return Offset(x, y)
 }
 
-/**
- * Вычисляет средний угол дуги
- */
 fun middleAngle(startAngle: Float, sweepAngle: Float): Float {
     return startAngle + sweepAngle / 2
 }
 
-/**
- * Корректирует угол, если текст "вниз головой"
- */
 fun adjustTextAngle(angle: Float): Float {
     return if (angle > 90f && angle < 270f) angle + 180f else angle
 }
