@@ -14,9 +14,6 @@ fun StatsSummary.toUiModel(
         formattedCost = "MDL ${totalCost.format(2)}",
         topDish = topDish ?: "–",
         formattedTopDishCost = "MDL ${topDishCost.format(2)}",
-        priceChanges = priceChanges,
-        priceUpCount = priceUpCount,
-        priceDownCount = priceDownCount,
         priceDynamics = priceDynamics
     )
 }

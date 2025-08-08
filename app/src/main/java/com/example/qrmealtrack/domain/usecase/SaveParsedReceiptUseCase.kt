@@ -10,12 +10,12 @@ class SaveParsedReceiptUseCase @Inject constructor(
 ) {
     suspend operator fun invoke(parsed: ParsedReceipt): Result<Unit> {
         if (parsed.items.isEmpty()) {
-            return Result.failure(IllegalArgumentException("Пустой список"))
+            return Result.failure(IllegalArgumentException("Empty list"))
         }
 
         val existing = repository.getReceiptsByFiscalCodeAndDate(parsed.fiscalCode, parsed.dateTime)
         if (existing.isNotEmpty()) {
-            return Result.failure(IllegalStateException("Этот чек уже сохранён"))
+            return Result.failure(IllegalStateException("This receipt has already been saved"))
         }
 
         repository.insertReceipt(parsed.toDomain())

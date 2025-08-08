@@ -54,6 +54,7 @@ dependencies {
     implementation(libs.androidx.camera.view)
     implementation(libs.androidx.room.runtime.android)
     testImplementation(libs.junit)
+    testImplementation(libs.junit.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
     androidTestImplementation(platform(libs.androidx.compose.bom))
@@ -61,20 +62,25 @@ dependencies {
     debugImplementation(libs.androidx.ui.tooling)
     debugImplementation(libs.androidx.ui.test.manifest)
 
-    implementation(libs.mlkit.barcode.scanning) // сканирование QR
+    testImplementation(libs.coroutines.test)
+    testImplementation(libs.turbine)
+    testImplementation(libs.mockito.core)
+    testImplementation(libs.mockito.kotlin)
 
-    implementation(libs.room.runtime) // Room runtime
-    implementation(libs.room.ktx) // Room с корутинами
-    ksp(libs.room.compiler) // генерация Room DAO
+    implementation(libs.mlkit.barcode.scanning)
+
+    implementation(libs.room.runtime)
+    implementation(libs.room.ktx)
+    ksp(libs.room.compiler)
 
     implementation(libs.hilt.android)
     ksp(libs.hilt.compiler)
     implementation(libs.hilt.navigation.compose)
 
-    implementation(libs.retrofit) // сетевые запросы (если нужны)
-    implementation(libs.retrofit.gson) // конвертер JSON
-    implementation(libs.coroutines.android) // корутины на Android
-    implementation(libs.lifecycle.viewmodel.ktx) // ViewModel с корутинами
+    implementation(libs.retrofit)
+    implementation(libs.retrofit.gson)
+    implementation(libs.coroutines.android)
+    implementation(libs.lifecycle.viewmodel.ktx)
 
     implementation(libs.navigation)
 
@@ -92,4 +98,5 @@ dependencies {
     implementation(libs.androidx.compose.runtime)
 
     implementation(libs.splashscreen)
+    testImplementation(kotlin("test"))
 }

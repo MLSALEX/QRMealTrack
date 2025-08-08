@@ -1,7 +1,6 @@
 package com.example.qrmealtrack.domain.usecase
 
 import com.example.qrmealtrack.domain.model.Receipt
-import com.example.qrmealtrack.domain.model.ReceiptCategory
 import com.example.qrmealtrack.domain.repository.ReceiptRepository
 import com.example.qrmealtrack.presentation.stats.TimeFilter
 import com.example.qrmealtrack.presentation.stats.components.CategoryStat

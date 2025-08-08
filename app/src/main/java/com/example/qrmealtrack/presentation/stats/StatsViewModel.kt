@@ -13,6 +13,7 @@ import com.example.qrmealtrack.presentation.stats.model.CategoryUiModel
 import com.example.qrmealtrack.presentation.stats.model.toUiModels
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -21,6 +22,7 @@ import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import javax.inject.Inject
@@ -38,6 +40,17 @@ class StatsViewModel @Inject constructor(
 
     private val _labelMode = MutableStateFlow(LabelMode.PERCENT)
     val labelMode: StateFlow<LabelMode> = _labelMode.asStateFlow()
+
+    private val _uiEvent = Channel<StatsUiEvent>()
+    val uiEvent = _uiEvent.receiveAsFlow()
+
+    fun onEvent(event: StatsUiEvent) {
+        viewModelScope.launch {
+            when (event) {
+                StatsUiEvent.NavigateToTrends -> _uiEvent.send(StatsUiEvent.NavigateToTrends)
+            }
+        }
+    }
 
     init {
         observeSummary()

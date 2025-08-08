@@ -13,7 +13,7 @@ data class ReceiptEntity(
     val enterprise: String,
     val total: Double,
     val dateTime: Long,
-    val category: String = ReceiptCategory.NO_CATEGORY.key  // ✅ категория чека целиком
+    val category: String = ReceiptCategory.NO_CATEGORY.key
 )
 @Entity(
     tableName = "receipt_item",
@@ -35,5 +35,5 @@ data class ReceiptItemEntity(
     val unitPrice: Double,
     val price: Double,
     val isWeightBased: Boolean = false,
-    val category: String? = null // ✅ категория конкретного товара
+    val category: String? = null
 )

@@ -2,18 +2,14 @@ package com.example.qrmealtrack.presentation.main
 
 import androidx.annotation.DrawableRes
 import androidx.annotation.StringRes
-import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.consumeWindowInsets
-import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.navigationBars
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.statusBars
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
-import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -30,6 +26,7 @@ import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import com.example.qrmealtrack.R
 import com.example.qrmealtrack.navigation.Screen
+import com.example.qrmealtrack.presentation.components.AppScaffold
 import com.example.qrmealtrack.presentation.home.HomeScreen
 import com.example.qrmealtrack.presentation.scan.ScanScreen
 import com.example.qrmealtrack.presentation.stats.StatsScreen
@@ -54,23 +51,16 @@ fun MainScreen(
         }
     }
 
-    Scaffold(
-        modifier = Modifier
-            .fillMaxSize()
-            .background(MaterialTheme.colorScheme.background),
-        contentWindowInsets = WindowInsets.statusBars,
-        bottomBar = {
-            BottomNavigationBar(
-                currentTab = state.currentTab,
-                onTabSelected = { tab  ->
-                    viewModel.onTabSelected(tab )
-                    navController.navigate(tab .route) {
-                        launchSingleTop = true
-                        popUpTo(navController.graph.startDestinationId) { saveState = true }
-                        restoreState = true
-                    }
-                }
-            )
+    AppScaffold(
+        showBottomBar = true,
+        currentTab = state.currentTab,
+        onTabSelected = { tab ->
+            viewModel.onTabSelected(tab)
+            navController.navigate(tab.route) {
+                launchSingleTop = true
+                popUpTo(navController.graph.startDestinationId) { saveState = true }
+                restoreState = true
+            }
         }
     ) { innerPadding ->
         NavHost(
@@ -97,7 +87,7 @@ fun MainScreen(
                 )
             }
             composable(BottomTab.STATS.route) {
-                StatsScreen()
+                StatsScreen(navController = parentNavController)
             }
         }
     }

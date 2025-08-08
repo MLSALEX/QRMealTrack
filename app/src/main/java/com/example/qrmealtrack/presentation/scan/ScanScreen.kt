@@ -80,12 +80,10 @@ fun ScanScreen(
                     processImageProxy(barcodeScanner, imageProxy) { rawValue ->
                         scannedText = rawValue
 
-                        // ✅ Если это ссылка — получаем информацию о странице
                         if (Patterns.WEB_URL.matcher(rawValue).matches()) {
                             viewModel.onAction(ReceiptUiAction.FetchWebPageInfo(rawValue))
                         }
 
-                        // ✅ Если это Receipt — сохраняем
                         val receipt = parseQrToReceipt(rawValue)
                         if (receipt != null) {
                             viewModel.addReceipt(receipt)
@@ -112,7 +110,6 @@ fun ScanScreen(
 
     SciFiQrScreen()
 
-    // ✅ Показываем ссылку и извлечённую информацию
     scannedText?.let { text ->
         if (Patterns.WEB_URL.matcher(text).matches()) {
             val annotatedLink = buildAnnotatedString {

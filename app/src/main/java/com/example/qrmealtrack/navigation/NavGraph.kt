@@ -1,6 +1,8 @@
 package com.example.qrmealtrack.navigation
 
+import android.app.Activity
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.platform.LocalContext
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavHostController
 import androidx.navigation.NavType
@@ -11,12 +13,11 @@ import com.example.qrmealtrack.presentation.receipt.ReceiptFromWebScreen
 import com.example.qrmealtrack.presentation.main.MainScreen
 import com.example.qrmealtrack.presentation.main.MainViewModel
 import com.example.qrmealtrack.presentation.permission.PermissionScreen
+import com.example.qrmealtrack.presentation.trends.TrendsScreen
 import java.net.URLDecoder
 import java.net.URLEncoder
 
-sealed class Screen(
-    val route: String
-) {
+sealed class Screen(val route: String) {
     data object Permission : Screen("permission")
     data object Main : Screen("main")
     data object Home : Screen("home")
@@ -25,15 +26,25 @@ sealed class Screen(
     data class ReceiptFromWeb(val url: String) : Screen("receipt_from_web/{url}") {
         fun createRoute(url: String) = "receipt_from_web/${URLEncoder.encode(url, "UTF-8")}"
     }
+    data object Trends : Screen("trends")
 }
 
 @Composable
 fun NavGraph(navController: NavHostController) {
-    NavHost(navController, startDestination = Screen.Permission.route) {
+
+    NavHost(
+        navController,
+        startDestination = Screen.Permission.route
+    ) {
         composable(Screen.Permission.route) {
             PermissionScreen(
                 permission = android.Manifest.permission.CAMERA,
-                onPermissionGranted = {  navController.navigate(Screen.Main.route) },
+                onPermissionGranted = {
+                    navController.navigate(Screen.Main.route){
+                        launchSingleTop = true
+                        restoreState = true
+                        popUpTo(Screen.Permission.route) { inclusive = true }
+                    } },
                 onPermissionDenied = { /* Показать диалог / навигация на error экран */ }
             )
         }
@@ -56,6 +67,11 @@ fun NavGraph(navController: NavHostController) {
                         popUpTo("main") { inclusive = true }
                     }
                 }
+            )
+        }
+        composable(Screen.Trends.route) {
+            TrendsScreen(
+//                onBack = { navController.popBackStack() }
             )
         }
     }

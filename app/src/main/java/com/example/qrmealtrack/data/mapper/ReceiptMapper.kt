@@ -20,7 +20,7 @@ fun Receipt.toEntity(): ReceiptEntity {
     )
 }
 
-// ReceiptItem → ReceiptItemEntity (нужно передать id чека)
+// ReceiptItem → ReceiptItemEntity
 fun ReceiptItem.toEntity(receiptId: Long): ReceiptItemEntity {
     return ReceiptItemEntity(
         receiptId = receiptId,
@@ -38,7 +38,7 @@ fun ReceiptWithItems.toDomain(): Receipt {
         fiscalCode = receipt.fiscalCode,
         enterprise = receipt.enterprise,
         dateTime = receipt.dateTime,
-        type = "", // если нужно — добавь type в ReceiptEntity
+        type = "",
         total = receipt.total,
         category = ReceiptCategory.fromKey(receipt.category),
         items = items.map {

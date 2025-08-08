@@ -9,8 +9,5 @@ data class StatsUiModel(
     val formattedCost: String,
     val topDish: String,
     val formattedTopDishCost: String,
-    val priceChanges: Int,
-    val priceUpCount: Int,
-    val priceDownCount: Int,
     val priceDynamics: List<PriceChangeItem>
 )

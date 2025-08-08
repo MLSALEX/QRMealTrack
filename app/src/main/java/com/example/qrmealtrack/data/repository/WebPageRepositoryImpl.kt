@@ -21,7 +21,7 @@ class WebPageRepositoryImpl @Inject constructor(): WebPageRepository {
 
             "Title: $title\nDescription: $metaDescription\nH1: $h1"
         } catch (e: Exception) {
-            "Ошибка: ${e.localizedMessage}"
+            "Error: ${e.localizedMessage}"
         }
     }
 }
