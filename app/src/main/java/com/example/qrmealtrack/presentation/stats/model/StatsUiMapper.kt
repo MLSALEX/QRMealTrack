@@ -1,31 +1,24 @@
 package com.example.qrmealtrack.presentation.stats.model
 
 import androidx.compose.ui.graphics.Color
-import com.example.qrmealtrack.domain.model.PriceChangeItem
-import com.example.qrmealtrack.domain.usecase.StatsSummary
+import com.example.qrmealtrack.domain.model.StatsSummary
 import com.example.qrmealtrack.presentation.stats.components.CategoryStat
 import com.example.qrmealtrack.presentation.stats.components.LabelMode
 
-fun StatsSummary.toUiModel(
-    priceDynamics: List<PriceChangeItem>
-): StatsUiModel {
+fun StatsSummary.toUiModel(): StatsUiModel {
     return StatsUiModel(
         formattedWeight = "${totalWeight.format(3)} kg",
         formattedCost = "MDL ${totalCost.format(2)}",
-        topDish = topDish ?: "–",
-        formattedTopDishCost = "MDL ${topDishCost.format(2)}",
-        priceDynamics = priceDynamics
     )
 }
 
-// утилита форматирования
 fun Double.format(digits: Int): String = "%.${digits}f".format(this)
 
 fun List<CategoryStat>.toUiModels(
     colors: List<Color>,
     labelMode: LabelMode
 ): Pair<List<CategoryUiModel>, Int> {
-    // Общая сумма по всем категориям, сразу округляем
+
     val total = sumOf { it.total }.toInt()
 
     val uiModels = mapIndexed { index, stat ->

@@ -1,8 +1,10 @@
-package com.example.qrmealtrack.presentation.model
+package com.example.qrmealtrack.presentation.model.mapper
 
 import com.example.qrmealtrack.R
 import com.example.qrmealtrack.domain.model.Receipt
 import com.example.qrmealtrack.domain.model.ReceiptCategory
+import com.example.qrmealtrack.presentation.model.ItemUiModel
+import com.example.qrmealtrack.presentation.model.ReceiptUiModel
 import com.example.qrmealtrack.presentation.utils.DateFormatter
 import javax.inject.Inject
 

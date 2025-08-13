@@ -8,9 +8,11 @@ import com.example.qrmealtrack.data.repository.ReceiptRepositoryImpl
 import com.example.qrmealtrack.data.repository.WebPageRepositoryImpl
 import com.example.qrmealtrack.domain.repository.ReceiptRepository
 import com.example.qrmealtrack.domain.repository.WebPageRepository
+import com.example.qrmealtrack.domain.time.DateRangeProvider
+import com.example.qrmealtrack.domain.time.JavaTimeDateRangeProvider
 import com.example.qrmealtrack.domain.usecase.GetAllReceiptsUseCase
-import com.example.qrmealtrack.domain.usecase.GetPriceDynamicsUseCase
 import com.example.qrmealtrack.presentation.utils.DateFormatter
+import dagger.Binds
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -51,14 +53,6 @@ object AppModule {
         return GetAllReceiptsUseCase(repository)
     }
 
-    @Provides
-    @Singleton
-    fun provideGetPriceDynamicsUseCase(
-        repository: ReceiptRepository
-    ): GetPriceDynamicsUseCase {
-        return GetPriceDynamicsUseCase(repository)
-    }
-
     @Module
     @InstallIn(SingletonComponent::class)
     object FormatterModule {
@@ -66,5 +60,16 @@ object AppModule {
         @Provides
         @Singleton
         fun provideDateFormatter(): DateFormatter = DateFormatter()
+    }
+
+    @Module
+    @InstallIn(SingletonComponent::class)
+    abstract class TimeBindModule {
+
+        @Binds
+        @Singleton
+        abstract fun bindDateRangeProvider(
+            impl: JavaTimeDateRangeProvider
+        ): DateRangeProvider
     }
 }

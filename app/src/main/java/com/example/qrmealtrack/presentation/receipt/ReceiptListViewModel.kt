@@ -9,7 +9,7 @@ import com.example.qrmealtrack.domain.repository.ReceiptRepository
 import com.example.qrmealtrack.domain.repository.WebPageRepository
 import com.example.qrmealtrack.domain.usecase.GetReceiptsGroupedByDayUseCase
 import com.example.qrmealtrack.domain.usecase.SaveParsedReceiptUseCase
-import com.example.qrmealtrack.presentation.model.ReceiptUiMapper
+import com.example.qrmealtrack.presentation.model.mapper.ReceiptUiMapper
 import com.example.qrmealtrack.presentation.utils.DateFormatter
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
