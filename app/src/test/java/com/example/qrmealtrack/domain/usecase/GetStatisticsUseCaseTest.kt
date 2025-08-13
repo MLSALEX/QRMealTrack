@@ -46,7 +46,7 @@ class GetStatisticsUseCaseTest {
    .thenReturn(DateRange(startMillis = start))
 
   val receipts = listOf(
-   // MEALS внутри периода → учитывается (cost 10.0, weight 500g)
+   // MEALS inside the period → should be included (cost 10.0, weight 500g)
    receipt(
     id = 1L,
     category = ReceiptCategory.MEALS,
@@ -54,7 +54,7 @@ class GetStatisticsUseCaseTest {
     date = "2025-08-10",
     items = listOf(item(weight = 200.0, price = 3.0), item(weight = 300.0, price = 7.0))
    ),
-   // НЕ MEALS внутри периода → игнорируется
+   // Non-MEALS inside the period → should be ignored
    receipt(
     id = 2L,
     category = ReceiptCategory.GROCERIES,
@@ -62,7 +62,7 @@ class GetStatisticsUseCaseTest {
     date = "2025-08-15",
     items = listOf(item(weight = 1000.0, price = 999.0))
    ),
-   // MEALS до начала периода → игнорируется
+   // MEALS before start of period → should be ignored
    receipt(
     id = 3L,
     category = ReceiptCategory.MEALS,
@@ -89,7 +89,7 @@ class GetStatisticsUseCaseTest {
    id = 10L,
    category = ReceiptCategory.MEALS,
    total = 12.0,
-   date = "2025-08-01", // ровно на границе — должно включиться (>= start)
+   date = "2025-08-01", // exactly at boundary → should be included (>= start)
    items = listOf(item(weight = 250.0, price = 12.0))
   )
 
@@ -123,7 +123,7 @@ class GetStatisticsUseCaseTest {
   )
   val r3 = receipt(
    id = 23L,
-   category = ReceiptCategory.GROCERIES, // не MEALS → не учитывается
+   category = ReceiptCategory.GROCERIES, // non-MEALS → should be ignored
    total = 1000.0,
    date = "2025-08-03",
    items = listOf(item(999.9, 1000.0))
@@ -133,7 +133,9 @@ class GetStatisticsUseCaseTest {
 
   val result = useCase(TimeFilter.Month).first()
 
+  // expected total: MEALS only → 12.34 + 7.66 = 20.00
   assertEquals(20.00, result.totalCost, delta)
+  // expected weight: 500.0 + 500.0 = 1000.0
   assertEquals(1000.0, result.totalWeight, delta)
  }
 
@@ -189,7 +191,7 @@ class GetStatisticsUseCaseTest {
   fiscalCode = "FC-$id",
   enterprise = "Test Enterprise",
   dateTime = dateMillis(date),
-  type = "QR", // строковый тип по твоей модели
+  type = "QR", // string per your model
   items = items,
   total = total,
   category = category
@@ -201,7 +203,7 @@ class GetStatisticsUseCaseTest {
   name: String = "X",
   unitPrice: Double = 0.0,
   isWeightBased: Boolean = true,
-  category: ReceiptCategory = ReceiptCategory.MEALS // категория позиции не влияет на use case, но пусть будет MEALS
+  category: ReceiptCategory = ReceiptCategory.MEALS // item category does not affect the use case, but keep MEALS for clarity
  ): ReceiptItem = ReceiptItem(
   name = name,
   weight = weight,
@@ -211,3 +213,4 @@ class GetStatisticsUseCaseTest {
   category = category
  )
 }
+
