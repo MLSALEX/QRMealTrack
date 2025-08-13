@@ -8,17 +8,14 @@ import com.example.qrmealtrack.data.repository.ReceiptRepositoryImpl
 import com.example.qrmealtrack.data.repository.WebPageRepositoryImpl
 import com.example.qrmealtrack.domain.repository.ReceiptRepository
 import com.example.qrmealtrack.domain.repository.WebPageRepository
-import com.example.qrmealtrack.domain.usecase.FetchWebPageInfoUseCase
 import com.example.qrmealtrack.domain.usecase.GetAllReceiptsUseCase
-import com.example.qrmealtrack.domain.usecase.GetFilteredStatsUseCase
 import com.example.qrmealtrack.domain.usecase.GetPriceDynamicsUseCase
-import com.example.qrmealtrack.domain.usecase.GetReceiptsGroupedByDayUseCase
-import com.example.qrmealtrack.domain.usecase.SaveParsedReceiptUseCase
 import com.example.qrmealtrack.presentation.utils.DateFormatter
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
 import dagger.hilt.components.SingletonComponent
+import okhttp3.OkHttpClient
 import javax.inject.Singleton
 
 @Module
@@ -41,15 +38,10 @@ object AppModule {
 
     @Provides
     @Singleton
-    fun provideWebPageRepository(): WebPageRepository =
-        WebPageRepositoryImpl()
-
-    @Provides
-    @Singleton
-    fun provideFetchWebPageInfoUseCase(
-        repository: WebPageRepository
-    ): FetchWebPageInfoUseCase =
-        FetchWebPageInfoUseCase(repository)
+    fun provideWebPageRepository(
+        client: OkHttpClient
+    ): WebPageRepository =
+        WebPageRepositoryImpl(client)
 
     @Provides
     @Singleton

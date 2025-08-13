@@ -6,12 +6,13 @@ import androidx.lifecycle.viewModelScope
 import com.example.qrmealtrack.domain.model.Receipt
 import com.example.qrmealtrack.domain.model.ReceiptCategory
 import com.example.qrmealtrack.domain.repository.ReceiptRepository
-import com.example.qrmealtrack.domain.usecase.FetchWebPageInfoUseCase
+import com.example.qrmealtrack.domain.repository.WebPageRepository
 import com.example.qrmealtrack.domain.usecase.GetReceiptsGroupedByDayUseCase
 import com.example.qrmealtrack.domain.usecase.SaveParsedReceiptUseCase
 import com.example.qrmealtrack.presentation.model.ReceiptUiMapper
 import com.example.qrmealtrack.presentation.utils.DateFormatter
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asSharedFlow
@@ -23,7 +24,7 @@ import javax.inject.Inject
 @HiltViewModel
 class ReceiptListViewModel @Inject constructor(
     private val repository: ReceiptRepository,
-    private val fetchWebPageInfoUseCase: FetchWebPageInfoUseCase,
+    private val webPageRepository: WebPageRepository,
     private val saveParsedReceiptUseCase: SaveParsedReceiptUseCase,
     private val getReceiptsGroupedByDayUseCase: GetReceiptsGroupedByDayUseCase,
     private val uiMapper: ReceiptUiMapper,
@@ -88,8 +89,8 @@ class ReceiptListViewModel @Inject constructor(
             }
 
             is ReceiptUiAction.FetchWebPageInfo -> {
-                viewModelScope.launch {
-                    val result = fetchWebPageInfoUseCase(action.url)
+                viewModelScope.launch (Dispatchers.IO) {
+                    val result = webPageRepository.fetchPageInfo(action.url)
                     _state.update { it.copy(webPageInfo = result) }
                 }
             }
