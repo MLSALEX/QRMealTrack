@@ -1,5 +1,6 @@
 package com.example.qrmealtrack.domain.usecase
 
+import com.example.qrmealtrack.domain.model.ReceiptCategory
 import com.example.qrmealtrack.domain.model.StatsSummary
 import com.example.qrmealtrack.domain.repository.ReceiptRepository
 import com.example.qrmealtrack.domain.time.DateRangeProvider
@@ -15,10 +16,12 @@ class GetStatisticsUseCase @Inject constructor(
     operator fun invoke(filter: TimeFilter): Flow<StatsSummary> {
         val (start, _) = dateRangeProvider.rangeFor(filter)
         return repository.getAllReceipts().map { receipts ->
-            val filtered = receipts.filter { it.dateTime >= start }
-            val allMeals = filtered.flatMap { it.items }
+            val mealsReceipts = receipts.asSequence()
+                .filter { it.dateTime >= start && it.category == ReceiptCategory.MEALS }
+                .toList()
+            val allMeals = mealsReceipts.flatMap { it.items }
             StatsSummary(
-                totalCost = filtered.sumOf { it.total },
+                totalCost = mealsReceipts.sumOf { it.total },
                 totalWeight = allMeals.sumOf { it.weight }
             )
         }

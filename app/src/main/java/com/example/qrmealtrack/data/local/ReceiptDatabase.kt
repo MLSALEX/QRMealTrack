@@ -6,7 +6,7 @@ import androidx.room.RoomDatabase
 @Database(
     entities = [ReceiptEntity::class, ReceiptItemEntity::class],
     version = 9,
-//    exportSchema = true
+    exportSchema = true
 )
 abstract class ReceiptDatabase : RoomDatabase() {
     abstract fun receiptDao(): ReceiptDao
