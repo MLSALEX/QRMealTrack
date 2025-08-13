@@ -1,3 +1,13 @@
+import org.jetbrains.kotlin.gradle.dsl.JvmTarget
+
+kotlin {
+    jvmToolchain(11)
+
+    compilerOptions {
+        jvmTarget.set(JvmTarget.JVM_11)
+        allWarningsAsErrors.set(false)
+    }
+}
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.android)
@@ -12,7 +22,7 @@ android {
 
     defaultConfig {
         applicationId = "com.example.qrmealtrack"
-        minSdk = 24
+        minSdk = 26
         targetSdk = 35
         versionCode = 1
         versionName = "1.0"
@@ -33,14 +43,20 @@ android {
         sourceCompatibility = JavaVersion.VERSION_11
         targetCompatibility = JavaVersion.VERSION_11
     }
-    kotlinOptions {
-        jvmTarget = "11"
-    }
     buildFeatures {
         compose = true
     }
 }
-
+ksp {
+    arg("room.schemaLocation", "$projectDir/schemas")
+    arg("room.incremental", "true")
+    arg("room.generateKotlin", "true")
+}
+tasks.withType<org.jetbrains.kotlin.gradle.tasks.KotlinCompile>().configureEach {
+    kotlinOptions {
+        allWarningsAsErrors = false
+    }
+}
 dependencies {
 
     implementation(libs.androidx.core.ktx)
@@ -52,9 +68,7 @@ dependencies {
     implementation(libs.androidx.ui.tooling.preview)
     implementation(libs.androidx.material3)
     implementation(libs.androidx.camera.view)
-    implementation(libs.androidx.room.runtime.android)
     testImplementation(libs.junit)
-    testImplementation(libs.junit.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
     androidTestImplementation(platform(libs.androidx.compose.bom))

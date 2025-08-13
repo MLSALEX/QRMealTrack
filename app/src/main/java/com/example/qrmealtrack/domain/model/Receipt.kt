@@ -8,7 +8,7 @@ data class Receipt(
     val type: String,
     val items: List<ReceiptItem>,
     val total: Double,
-    val category: ReceiptCategory,          // ✅ категория чека
+    val category: ReceiptCategory,
 )
 
 data class ReceiptItem(

@@ -54,8 +54,8 @@ import com.example.qrmealtrack.presentation.components.CategorySelectionSheet
 import com.example.qrmealtrack.presentation.components.CategoryUi
 import com.example.qrmealtrack.presentation.components.FilterType
 import com.example.qrmealtrack.presentation.model.ReceiptUiModel
-import com.example.qrmealtrack.presentation.model.displayName
-import com.example.qrmealtrack.presentation.model.iconRes
+import com.example.qrmealtrack.presentation.model.mapper.displayName
+import com.example.qrmealtrack.presentation.model.mapper.iconRes
 import com.example.qrmealtrack.presentation.receipt.ReceiptListViewModel
 import com.example.qrmealtrack.presentation.receipt.ReceiptUiAction
 import com.example.qrmealtrack.ui.theme.home.receiptCardGlowBackground

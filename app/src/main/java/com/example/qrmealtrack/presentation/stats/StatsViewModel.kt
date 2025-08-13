@@ -3,9 +3,7 @@ package com.example.qrmealtrack.presentation.stats
 import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.example.qrmealtrack.domain.repository.ReceiptRepository
 import com.example.qrmealtrack.domain.usecase.GetCategoryStatsUseCase
-import com.example.qrmealtrack.domain.usecase.GetPriceDynamicsUseCase
 import com.example.qrmealtrack.domain.usecase.GetStatisticsUseCase
 import com.example.qrmealtrack.presentation.stats.colors_provider.defaultCategoryColors
 import com.example.qrmealtrack.presentation.stats.components.LabelMode
@@ -30,9 +28,7 @@ import javax.inject.Inject
 @HiltViewModel
 class StatsViewModel @Inject constructor(
     private val getStatisticsUseCase: GetStatisticsUseCase,
-    private val getPriceDynamicsUseCase: GetPriceDynamicsUseCase,
     private val getCategoryStatsUseCase: GetCategoryStatsUseCase,
-    private val repository: ReceiptRepository
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(StatsUiState())
@@ -54,7 +50,6 @@ class StatsViewModel @Inject constructor(
 
     init {
         observeSummary()
-        observePriceChanges()
         observeCategoryStats()
     }
 
@@ -71,14 +66,6 @@ class StatsViewModel @Inject constructor(
         }
     }
 
-    private fun observePriceChanges() {
-        viewModelScope.launch {
-            getPriceDynamicsUseCase().collect { changes ->
-                _uiState.update { it.copy(priceDynamics = changes) }
-            }
-        }
-    }
-
     @OptIn(ExperimentalCoroutinesApi::class)
     private fun observeCategoryStats() {
         viewModelScope.launch {
@@ -91,7 +78,7 @@ class StatsViewModel @Inject constructor(
                 val colors = defaultCategoryColors()
                 stats.toUiModels(colors, mode)
             }
-                .distinctUntilChanged() // если результат не изменился – не обновляем UI
+                .distinctUntilChanged()
                 .catch { e ->
                     Log.e("observeCategoryStats", "Failed to load stats", e)
                     emit(emptyList<CategoryUiModel>() to 0)

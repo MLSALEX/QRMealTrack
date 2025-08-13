@@ -6,4 +6,5 @@
     <string name="stats">Stats</string>
     <string name="delete_receipt">Delete receipt?</string>
     <string name="are_you_sure">Are you sure you want to delete this receipt?</string>
+    <string name="no_records_for_the_selected_period">No records for the selected period</string>
 </resources>

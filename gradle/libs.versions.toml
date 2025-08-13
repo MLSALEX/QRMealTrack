@@ -14,7 +14,7 @@ turbine = "1.1.0"
 mockitoCore = "5.12.0"
 mockitoKotlin = "5.2.1"
 
-room = "2.6.1"
+room = "2.7.2"
 
 hilt = "2.51.1"
 ksp = "2.0.21-1.0.25"
@@ -33,7 +33,6 @@ cameraView = "1.4.2"
 
 jsoup = "1.15.4"
 okhttp = "4.12.0"
-roomRuntimeAndroid = "2.7.1"
 
 splash = "1.0.1"
 junitJunit = "4.12"
@@ -82,7 +81,6 @@ jsoup = { module = "org.jsoup:jsoup", version.ref = "jsoup" }
 okhttp = { module = "com.squareup.okhttp3:okhttp", version.ref = "okhttp" }
 
 material-icons-extended = { group = "androidx.compose.material", name = "material-icons-extended" }
-androidx-room-runtime-android = { group = "androidx.room", name = "room-runtime-android", version.ref = "roomRuntimeAndroid" }
 
 androidx-compose-foundation = { group = "androidx.compose.foundation", name = "foundation" }
 androidx-compose-foundation-layout = { group = "androidx.compose.foundation", name = "foundation-layout" }
